@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<style>
+  .logo {
+    width: 100px; height: 100px;
+    position: relative;
+    margin: 20px auto;
+  }
+  .mobius {
+    width: 80px; height: 40px;
+    border: 5px solid transparent;
+    border-top-color: #2962FF;
+    border-bottom-color: #FF6D00;
+    border-radius: 50%;
+    transform-origin: 50% 50%;
+    transform: rotateX(60deg) rotate(45deg);
+    position: absolute;
+    top: 30px; left: 10px;
+    animation: spin 6s linear infinite;
+  }
+  .bee {
+    width: 24px; height: 16px;
+    background: #FFC107;
+    border-radius: 8px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  }
+  .bee:before, .bee:after {
+    content: "";
+    position: absolute;
+    width: 100%; height: 2px;
+    background: #000;
+    left: 0;
+  }
+  .bee:before { top: 4px; }
+  .bee:after { top: 10px; }
+  @keyframes spin {
+    to { transform: rotateX(60deg) rotate(405deg); }
+  }
+</style>
+<div class="logo">
+  <div class="mobius"></div>
+  <div class="bee"></div>
+</div>

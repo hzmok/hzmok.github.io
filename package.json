@@ -1,0 +1,21 @@
+{
+  "name": "hzmook-devspace",
+  "version": "1.0.0",
+  "description": "一个专注于技术分享和资源整理的开发者空间",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
+    "vue": "^3.4.15"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "gh-pages": "^6.1.1"
+  }
+} 

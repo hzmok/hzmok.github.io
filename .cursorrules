@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "rules": {
+    "formatting": {
+      "indentSize": 2,
+      "useTabs": false,
+      "lineEnding": "lf",
+      "trimTrailingWhitespace": true,
+      "insertFinalNewline": true,
+      "maxLineLength": 100
+    },
+    "naming": {
+      "files": {
+        "case": "kebab-case",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "components": {
+        "case": "PascalCase",
+        "pattern": "^[A-Z][a-zA-Z0-9]*$"
+      },
+      "variables": {
+        "case": "camelCase",
+        "pattern": "^[a-z][a-zA-Z0-9]*$"
+      },
+      "constants": {
+        "case": "UPPER_SNAKE_CASE",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      }
+    },
+    "html": {
+      "selfClosingTags": true,
+      "attributeQuotes": "double",
+      "booleanAttributes": true,
+      "voidElements": true
+    },
+    "css": {
+      "propertyOrder": [
+        "position",
+        "display",
+        "box-sizing",
+        "width",
+        "height",
+        "margin",
+        "padding",
+        "border",
+        "background",
+        "color",
+        "font",
+        "text",
+        "transform",
+        "transition",
+        "animation"
+      ],
+      "units": {
+        "preferred": "rem",
+        "fallback": "px"
+      }
+    },
+    "javascript": {
+      "semicolons": true,
+      "quotes": "single",
+      "trailingComma": "es5",
+      "arrowParens": "always",
+      "bracketSpacing": true
+    },
+    "paths": {
+      "components": "components/**/*.{html,css,js}",
+      "styles": "assets/css/**/*.css",
+      "scripts": "assets/js/**/*.js",
+      "images": "assets/images/**/*.{png,jpg,webp,svg}",
+      "data": "data/**/*.json"
+    },
+    "linting": {
+      "html": {
+        "enabled": true,
+        "rules": {
+          "no-inline-styles": "error",
+          "no-duplicate-attributes": "error",
+          "no-missing-alt": "error"
+        }
+      },
+      "css": {
+        "enabled": true,
+        "rules": {
+          "no-important": "error",
+          "no-ids": "error",
+          "no-unused-selectors": "warn"
+        }
+      },
+      "javascript": {
+        "enabled": true,
+        "rules": {
+          "no-console": "warn",
+          "no-unused-vars": "error",
+          "no-undef": "error"
+        }
+      }
+    },
+    "editor": {
+      "formatOnSave": true,
+      "formatOnPaste": true,
+      "trimTrailingWhitespace": true,
+      "insertFinalNewline": true,
+      "rulers": [100],
+      "wordWrap": "off",
+      "tabSize": 2,
+      "insertSpaces": true,
+      "detectIndentation": true,
+      "trimAutoWhitespace": true
+    },
+    "git": {
+      "enabled": true,
+      "commitMessageFormat": "type(scope): message",
+      "commitTypes": [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "test",
+        "chore"
+      ]
+    },
+    "search": {
+      "exclude": [
+        "node_modules",
+        "dist",
+        "build",
+        ".git",
+        "*.min.js",
+        "*.min.css"
+      ],
+      "include": [
+        "*.{js,jsx,ts,tsx,vue}",
+        "*.{css,scss,less}",
+        "*.{html,htm}",
+        "*.{json,yml,yaml}"
+      ]
+    },
+    "performance": {
+      "maxFileSize": 1000000,
+      "maxFilesInDirectory": 1000,
+      "maxDepth": 10
+    }
+  }
+} 
