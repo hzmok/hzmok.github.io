@@ -459,14 +459,36 @@
         /* 响应式设计 */
         @media (max-width: 992px) {
             body {
-                grid-template-columns: 1fr;
+                padding-left: 0;
             }
             
             .toc-container {
-                position: static;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .toc-container.active {
+                left: 0;
+            }
+            
+            .toc-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 50%;
+                cursor: pointer;
+                box-shadow: var(--shadow);
             }
             
             .case-study {
@@ -476,21 +498,86 @@
 
         @media (max-width: 768px) {
             .main-content {
-                padding: 30px 20px;
+                padding: 20px;
+                margin-top: 60px;
             }
             
             .stats-container {
                 flex-direction: column;
                 align-items: center;
+                gap: 15px;
+            }
+            
+            .stat-card {
+                width: 100%;
+                max-width: 300px;
             }
             
             section {
                 padding: 20px;
             }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.2rem;
+            }
+            
+            pre {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .code-header {
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .stat-card {
+                min-width: auto;
+            }
+            
+            .stat-value {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 移动端导航切换按钮 -->
+    <button class="toc-toggle" id="tocToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- 大纲导航 -->
     <div class="toc-container">
         <div class="toc-header">
@@ -845,6 +932,32 @@ self.<span class="highlight">onmessage</span> = (e) => {
     <script>
         // 动态生成大纲导航
         document.addEventListener('DOMContentLoaded', function() {
+            // 移动端导航切换
+            const tocToggle = document.getElementById('tocToggle');
+            const tocContainer = document.querySelector('.toc-container');
+            
+            tocToggle.addEventListener('click', () => {
+                tocContainer.classList.toggle('active');
+            });
+            
+            // 点击导航链接后自动关闭导航菜单
+            document.querySelectorAll('.toc a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        tocContainer.classList.remove('active');
+                    }
+                });
+            });
+            
+            // 点击页面其他区域关闭导航菜单
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 992 && 
+                    !tocContainer.contains(e.target) && 
+                    !tocToggle.contains(e.target)) {
+                    tocContainer.classList.remove('active');
+                }
+            });
+
             const sections = document.querySelectorAll('section');
             const toc = document.getElementById('tableOfContents');
             

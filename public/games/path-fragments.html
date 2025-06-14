@@ -35,7 +35,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 10px;
             overflow: hidden;
             position: relative;
         }
@@ -81,8 +81,10 @@
         
         /* 游戏容器 */
         .game-container {
-            position: relative;
-            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: auto;
             max-width: 500px;
             background: var(--panel);
             border-radius: 16px;
@@ -120,12 +122,13 @@
         #game {
             position: relative;
             width: 100%;
-            height: 0;
-            padding-bottom: 100%; /* 正方形区域 */
+            aspect-ratio: 1 / 1;
+            max-height: 60vw;
             background: var(--grid);
             border-radius: 10px;
             overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
         }
         
         .cell {
@@ -181,10 +184,10 @@
         .d-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
             gap: 5px;
             width: 150px;
-            height: 150px;
+            height: 100px;
         }
         
         .d-pad-btn {
@@ -206,7 +209,7 @@
         }
         
         .d-pad-btn.up { grid-column: 2; grid-row: 1; }
-        .d-pad-btn.down { grid-column: 2; grid-row: 3; }
+        .d-pad-btn.down { grid-column: 2; grid-row: 2; }
         .d-pad-btn.left { grid-column: 1; grid-row: 2; }
         .d-pad-btn.right { grid-column: 3; grid-row: 2; }
         
@@ -490,11 +493,13 @@
     <div class="background-pattern"></div>
     
     <!-- 标题区域 -->
+    <!--
     <div class="header">
         <h1 class="game-title">路径碎片</h1>
         <p class="subtitle">规划路线 · 收集碎片 · 避开脚印陷阱</p>
     </div>
-    
+    -->
+
     <!-- 游戏容器 -->
     <div class="game-container">
         <!-- 状态栏 -->
