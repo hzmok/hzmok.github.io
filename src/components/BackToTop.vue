@@ -2,6 +2,7 @@
   <div 
     v-show="isVisible" 
     class="back-to-top"
+    title="返回顶部"
     @click="scrollToTop"
   >
     <i class="fas fa-arrow-up"></i>
@@ -42,8 +43,8 @@ export default {
 <style scoped>
 .back-to-top {
   position: fixed;
-  right: 2rem;
-  bottom: 2rem;
+  right: 0.5rem;
+  bottom: 0.5rem;
   width: 3rem;
   height: 3rem;
   background-color: #4a90e2;

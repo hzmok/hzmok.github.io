@@ -8,7 +8,7 @@
           <span class="logo-text">Hzmook</span>
         </a>
         <div class="nav-links">
-          <a href="#resources">资源收藏</a>
+          <a href="#resources">精选资源</a>
           <a href="#projects">实验项目</a>
           <a href="#blog">技术博客</a>
           <a href="#about">关于我</a>

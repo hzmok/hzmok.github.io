@@ -6,10 +6,10 @@
           <h3>关于本站</h3>
           <p>一个专注于技术分享和资源整理的开发者空间，致力于帮助开发者提升技能和效率。在这里，你可以找到高质量的技术文章、实用的开发工具和有趣的项目实践。</p>
           <div class="social-links">
-            <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
-            <a href="#" title="掘金"><i class="fas fa-book"></i></a>
-            <a href="#" title="知乎"><i class="fab fa-zhihu"></i></a>
-            <a href="#" title="微信"><i class="fab fa-weixin"></i></a>
+            <a href="https://github.com" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+            <a href="https://juejin.cn" target="_blank" title="掘金"><i class="fas fa-book"></i></a>
+            <a href="https://www.zhihu.com" target="_blank" title="知乎"><i class="fab fa-zhihu"></i></a>
+            <a href="https://www.infoq.cn" target="_blank" title="InfoQ"><i class="fas fa-newspaper"></i></a>
           </div>
         </div>
         
@@ -38,8 +38,7 @@
           <h3>联系方式</h3>
           <ul class="footer-links">
             <li><a href="mailto:hzmook@126.com"><i class="fas fa-envelope"></i> hzmook@126.com</a></li>
-            <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
-            <li><a href="#"><i class="fas fa-rss"></i> RSS订阅</a></li>
+            <li><a href="https://github.com/hzmok" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
           </ul>
         </div>
       </div>

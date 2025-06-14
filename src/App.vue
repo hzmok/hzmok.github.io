@@ -25,12 +25,12 @@
           <div class="resources-container">
             <div class="resource-card">
               <div class="resource-icon">
-                <i class="fab fa-js"></i>
+                <i class="fas fa-globe"></i>
               </div>
               <div class="resource-content">
-                <h3>现代JavaScript教程</h3>
-                <p>从基础到高级的JavaScript全面教程，包含大量实例和最佳实践。</p>
-                <a href="#" class="btn btn-outline">访问资源</a>
+                <h3>前端开发指南</h3>
+                <p>系统化的前端技术学习路径，涵盖HTML5、CSS3、JavaScript等核心技术。</p>
+                <a href="https://developer.mozilla.org/zh-CN/docs/Web/" class="btn btn-outline" target="_blank">访问资源</a>
                 <div class="tags">
                   <span class="tag">前端</span>
                   <span class="tag">JavaScript</span>
@@ -46,7 +46,7 @@
               <div class="resource-content">
                 <h3>UI设计资源</h3>
                 <p>精选的设计工具、配色方案和UI组件库，提升产品视觉体验。</p>
-                <a href="#" class="btn btn-outline">访问资源</a>
+                <a href="https://collectui.com/" class="btn btn-outline" target="_blank">访问资源</a>
                 <div class="tags">
                   <span class="tag">设计</span>
                   <span class="tag">UI/UX</span>
@@ -57,16 +57,16 @@
             
             <div class="resource-card">
               <div class="resource-icon">
-                <i class="fas fa-server"></i>
+                <i class="fas fa-database"></i>
               </div>
               <div class="resource-content">
                 <h3>后端开发指南</h3>
-                <p>Node.js、Python、Go等后端技术栈的学习路径和项目实践。</p>
-                <a href="#" class="btn btn-outline">访问资源</a>
+                <p>Java、Spring等后端技术栈的学习路径和项目实践。</p>
+                <a href="https://spring.io/guides" class="btn btn-outline" target="_blank">访问资源</a>
                 <div class="tags">
                   <span class="tag">后端</span>
-                  <span class="tag">Node.js</span>
-                  <span class="tag">API</span>
+                  <span class="tag">Java</span>
+                  <span class="tag">Spring</span>
                 </div>
               </div>
             </div>
@@ -335,7 +335,7 @@ export default {
 }
 
 .project-image {
-  height: 200px;
+  height: 120px;
   background: linear-gradient(135deg, #4cc9f0, #4361ee);
   display: flex;
   align-items: center;
@@ -390,7 +390,7 @@ export default {
 }
 
 .blog-image {
-  height: 180px;
+  height: 120px;
   background: linear-gradient(135deg, #f72585, #4361ee);
   display: flex;
   align-items: center;
