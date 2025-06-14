@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性能优化实战指南：打造极速Web应用体验</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ecc71;
+            --gray: #6c757d;
+            --border: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            position: relative;
+            padding-left: 280px;
+        }
+
+        /* 大纲导航样式 */
+        .toc-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            background: white;
+            box-shadow: var(--shadow);
+            border-right: 1px solid var(--border);
+            padding: 20px 15px;
+        }
+
+        .toc-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .toc-header h2 {
+            color: var(--secondary);
+            margin-left: 2px;
+            font-size: 1.4rem;
+        }
+
+        .toc-header i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .toc {
+            list-style: none;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .toc li a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: var(--dark);
+            border-radius: 6px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .toc li a:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary);
+        }
+
+        .toc li a.active {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .toc li ul {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .toc li ul li a {
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            padding: 40px 50px 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            min-width: 180px;
+            border-top: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* 内容区块样式 */
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 5px 0 0 5px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        h2 i {
+            margin-right: 12px;
+            color: var(--primary);
+            background: rgba(52, 152, 219, 0.15);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin: 25px 0 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+        }
+
+        h3 i {
+            margin-right: 10px;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #444;
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin-left: 0px;
+            margin-bottom: 25px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 0px;
+        }
+
+        ol li {
+            counter-increment: step-counter;
+            padding-left: 25px;
+        }
+
+        ol li:before {
+            content: counter(step-counter);
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 0.9rem;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        /* 代码块样式 */
+        pre {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 15px -20px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            background: #3a3a3a;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            color: #f8f8f2;
+        }
+
+        .highlight {
+            color: #ffcc66;
+        }
+
+        .keyword {
+            color: #cc99cd;
+        }
+
+        .function {
+            color: #f08d49;
+        }
+
+        .comment {
+            color: #999;
+        }
+
+        /* 案例研究 */
+        .case-study {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .case-column {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .case-column h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .improvement {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: var(--success);
+            color: white;
+            font-size: 0.8rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            margin: 15px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            
+            .toc-container {
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .case-study {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 30px 20px;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 大纲导航 -->
+    <div class="toc-container">
+        <div class="toc-header">
+            <i class="fas fa-bookmark"></i>
+            <h2>文档大纲</h2>
+        </div>
+        <ul class="toc" id="tableOfContents">
+            <!-- JavaScript会动态生成这里的内容 -->
+        </ul>
+    </div>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <header>
+            <div class="header-content">
+                <h1>性能优化实战指南</h1>
+                <p class="subtitle">从加载时间到运行时性能，全面提升Web应用用户体验的实用技巧</p>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-bolt fa-2x"></i>
+                        <div class="stat-value">75%</div>
+                        <div class="stat-label">加载时间减少</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-tachometer-alt fa-2x"></i>
+                        <div class="stat-value">60 FPS</div>
+                        <div class="stat-label">平均帧率提升</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-mobile-alt fa-2x"></i>
+                        <div class="stat-value">64%</div>
+                        <div class="stat-label">首屏渲染加速</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 加载性能优化 -->
+        <section id="loading-performance">
+            <h2><i class="fas fa-rocket"></i> 一、加载性能优化</h2>
+            
+            <article>
+                <h3><i class="fas fa-compress-arrows-alt"></i> 1.1 资源压缩与合并</h3>
+                <p>通过工具链实现全链路压缩：</p>
+                <ul>
+                    <li><strong>HTML压缩：</strong> 移除冗余空格/注释，节省约15%体积。工具：HTMLMinifier</li>
+                    <li><strong>CSS优化：</strong> 使用CSSNano压缩，合并媒体查询，自动添加前缀。工具：PostCSS</li>
+                    <li><strong>JavaScript处理：</strong> ES6+代码Tree Shaking + UglifyJS压缩，移除未使用代码</li>
+                    <li><strong>字体优化：</strong> 使用WOFF2格式，子集化仅包含必要字符</li>
+                </ul>
+                
+                <div class="code-header">
+                    <span>webpack.config.js</span>
+                    <button class="copy-btn">复制代码</button>
+                </div>
+                <pre><code><span class="keyword">module</span>.<span class="keyword">exports</span> = {
+  <span class="highlight">optimization</span>: {
+    <span class="highlight">minimize</span>: <span class="keyword">true</span>,
+    <span class="highlight">minimizer</span>: [<span class="keyword">new</span> <span class="function">TerserPlugin</span>({
+      <span class="highlight">terserOptions</span>: {
+        <span class="highlight">compress</span>: { 
+          <span class="highlight">drop_console</span>: <span class="keyword">true</span> <span class="comment">// 生产环境移除console</span>
+        }
+      }
+    })]
+  },
+  <span class="highlight">plugins</span>: [
+    <span class="keyword">new</span> <span class="function">MiniCssExtractPlugin</span>({
+      <span class="highlight">filename</span>: <span class="string">'[name].[contenthash].css'</span>
+    })
+  ]
+}</code></pre>
+                
+                <h3><i class="fas fa-truck-loading"></i> 1.2 智能资源加载策略</h3>
+                <p>采用渐进式加载方案，按需加载关键资源：</p>
+                
+                <table>
+                    <tr>
+                        <th>资源类型</th>
+                        <th>优化手段</th>
+                        <th>效果</th>
+                    </tr>
+                    <tr>
+                        <td>首屏CSS</td>
+                        <td>内联关键样式，异步加载非关键CSS</td>
+                        <td>减少渲染阻塞时间300ms+</td>
+                    </tr>
+                    <tr>
+                        <td>JavaScript</td>
+                        <td>defer/async加载，动态import()代码分割</td>
+                        <td>主线程释放，并行下载</td>
+                    </tr>
+                    <tr>
+                        <td>图片资源</td>
+                        <td>WebP格式+响应式图片，懒加载</td>
+                        <td>体积减少30-50%，节省带宽</td>
+                    </tr>
+                    <tr>
+                        <td>字体文件</td>
+                        <td>font-display: swap，预加载关键字体</td>
+                        <td>避免布局偏移，提升FCP</td>
+                    </tr>
+                </table>
+                
+                <div class="code-header">
+                    <span>index.html</span>
+                    <button class="copy-btn">复制代码</button>
+                </div>
+                <pre><code>&lt;<span class="keyword">link</span> <span class="highlight">rel</span>=<span class="string">"preload"</span> <span class="highlight">href</span>=<span class="string">"font.woff2"</span> <span class="highlight">as</span>=<span class="string">"font"</span> <span class="highlight">type</span>=<span class="string">"font/woff2"</span> <span class="highlight">crossorigin</span>&gt;
+
+&lt;<span class="keyword">picture</span>&gt;
+  &lt;<span class="keyword">source</span> <span class="highlight">srcset</span>=<span class="string">"image.webp"</span> <span class="highlight">type</span>=<span class="string">"image/webp"</span>&gt;
+  &lt;<span class="keyword">source</span> <span class="highlight">srcset</span>=<span class="string">"image.jpg"</span> <span class="highlight">type</span>=<span class="string">"image/jpeg"</span>&gt;
+  &lt;<span class="keyword">img</span> <span class="highlight">src</span>=<span class="string">"image.jpg"</span> <span class="highlight">alt</span>=<span class="string">"示例图片"</span> <span class="highlight">loading</span>=<span class="string">"lazy"</span>&gt;
+&lt;/<span class="keyword">picture</span>&gt;
+
+&lt;<span class="keyword">script</span> <span class="highlight">src</span>=<span class="string">"app.js"</span> <span class="highlight">defer</span>&gt;&lt;/<span class="keyword">script</span>&gt;</code></pre>
+            </article>
+        </section>
+
+        <!-- 运行时性能优化 -->
+        <section id="runtime-performance">
+            <h2><i class="fas fa-tachometer-alt"></i> 二、运行时性能优化</h2>
+            
+            <article>
+                <h3><i class="fas fa-paint-brush"></i> 2.1 渲染性能优化</h3>
+                <p>关键渲染路径优化方案：</p>
+                <ol>
+                    <li><strong>避免布局抖动：</strong> 批量DOM操作，使用requestAnimationFrame</li>
+                    <li><strong>GPU加速：</strong> 使用transform和opacity创建合成层</li>
+                    <li><strong>虚拟滚动：</strong> 仅渲染可视区域DOM元素（适用于长列表）</li>
+                    <li><strong>内容可见性：</strong> 使用CSS content-visibility跳过屏幕外渲染</li>
+                </ol>
+                
+                <div class="code-header">
+                    <span>virtual-scroll.js</span>
+                    <button class="copy-btn">复制代码</button>
+                </div>
+                <pre><code><span class="keyword">const</span> observer = <span class="keyword">new</span> <span class="function">IntersectionObserver</span>((entries) => {
+  entries.<span class="function">forEach</span>(entry => {
+    <span class="keyword">if</span>(entry.<span class="highlight">isIntersecting</span>) {
+      <span class="comment">// 动态加载可视区域内容</span>
+      <span class="keyword">const</span> itemId = entry.<span class="highlight">target</span>.<span class="highlight">dataset</span>.<span class="highlight">id</span>;
+      <span class="function">loadContent</span>(itemId);
+    }
+  })
+}, { 
+  <span class="highlight">rootMargin</span>: <span class="string">'50px 0px 100px 0px'</span> <span class="comment">// 提前加载区域</span>
+});
+
+<span class="comment">// 观察所有列表项</span>
+document.<span class="function">querySelectorAll</span>(<span class="string">'.list-item'</span>).<span class="function">forEach</span>(item => {
+  observer.<span class="function">observe</span>(item);
+});</code></pre>
+                
+                <h3><i class="fas fa-code"></i> 2.2 JavaScript执行优化</h3>
+                <p>高性能代码编写规范：</p>
+                <ul>
+                    <li><strong>减少重排重绘：</strong> 使用transform代替top/left，分离读/写操作</li>
+                    <li><strong>事件委托：</strong> 使用事件冒泡机制统一处理同类事件</li>
+                    <li><strong>Web Workers：</strong> 将计算密集型任务移出主线程</li>
+                    <li><strong>内存管理：</strong> 避免内存泄漏，及时解除事件监听</li>
+                </ul>
+                
+                <div class="code-header">
+                    <span>worker-util.js</span>
+                    <button class="copy-btn">复制代码</button>
+                </div>
+                <pre><code><span class="comment">// 主线程代码</span>
+<span class="keyword">const</span> worker = <span class="keyword">new</span> <span class="function">Worker</span>(<span class="string">'worker.js'</span>);
+
+<span class="comment">// 发送数据到Web Worker</span>
+worker.<span class="function">postMessage</span>({ 
+  <span class="highlight">type</span>: <span class="string">'processData'</span>, 
+  <span class="highlight">data</span>: largeDataSet 
+});
+
+<span class="comment">// 接收处理结果</span>
+worker.<span class="highlight">onmessage</span> = (e) => {
+  <span class="keyword">const</span> result = e.<span class="highlight">data</span>;
+  <span class="function">updateUI</span>(result);
+};
+
+<span class="comment">// worker.js</span>
+self.<span class="highlight">onmessage</span> = (e) => {
+  <span class="keyword">if</span> (e.<span class="highlight">data</span>.<span class="highlight">type</span> === <span class="string">'processData'</span>) {
+    <span class="keyword">const</span> processed = <span class="function">heavyComputation</span>(e.<span class="highlight">data</span>.<span class="highlight">data</span>);
+    self.<span class="function">postMessage</span>(processed);
+  }
+};</code></pre>
+            </article>
+        </section>
+
+        <!-- 网络层优化 -->
+        <section id="network-optimization">
+            <h2><i class="fas fa-network-wired"></i> 三、网络层优化</h2>
+            
+            <article>
+                <h3><i class="fas fa-database"></i> 3.1 智能缓存策略</h3>
+                <p>多级缓存体系构建：</p>
+                <ul>
+                    <li><strong>Service Worker：</strong> 实现离线缓存，支持后台同步</li>
+                    <li><strong>内存缓存：</strong> 使用Map对象缓存API响应</li>
+                    <li><strong>持久化存储：</strong> localStorage或IndexedDB存储关键数据</li>
+                    <li><strong>CDN缓存：</strong> 配置适当的Cache-Control和ETag头部</li>
+                </ul>
+                
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>首次加载</span>
+                        <span>缓存命中</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                </div>
+                
+                <h3><i class="fas fa-exchange-alt"></i> 3.2 协议层优化</h3>
+                <p>HTTP/2和HTTP/3特性深度应用：</p>
+                <ul>
+                    <li><strong>多路复用：</strong> 单个连接并行传输多个请求</li>
+                    <li><strong>头部压缩：</strong> HPACK算法减少头部大小</li>
+                    <li><strong>服务器推送：</strong> 预推送关键资源减少RTT</li>
+                    <li><strong>QUIC协议：</strong> 基于UDP的HTTP/3解决队头阻塞</li>
+                </ul>
+                
+                <pre><code><span class="comment"># Nginx配置HTTP/2</span>
+<span class="highlight">server</span> {
+    <span class="highlight">listen</span> 443 ssl http2; <span class="comment"># 启用HTTP/2</span>
+    <span class="highlight">server_name</span> example.com;
+    
+    <span class="highlight">ssl_certificate</span> /path/to/cert.pem;
+    <span class="highlight">ssl_certificate_key</span> /path/to/key.pem;
+    
+    <span class="comment"># 启用服务器推送</span>
+    <span class="highlight">http2_push</span> /style.css;
+    <span class="highlight">http2_push</span> /app.js;
+}</code></pre>
+            </article>
+        </section>
+
+        <!-- 监控与调试 -->
+        <section id="monitoring">
+            <h2><i class="fas fa-chart-line"></i> 四、监控与调试</h2>
+            
+            <article>
+                <h3><i class="fas fa-ruler"></i> 4.1 性能监控体系</h3>
+                <p>关键指标监控方案：</p>
+                <ul>
+                    <li><strong>FCP（首次内容绘制）：</strong> &lt; 2s（良好）</li>
+                    <li><strong>LCP（最大内容绘制）：</strong> &lt; 2.5s（良好）</li>
+                    <li><strong>TTI（可交互时间）：</strong> &lt; 3s（良好）</li>
+                    <li><strong>CLS（累积布局偏移）：</strong> &lt; 0.1（良好）</li>
+                </ul>
+                
+                <div class="code-header">
+                    <span>perf-monitor.js</span>
+                    <button class="copy-btn">复制代码</button>
+                </div>
+                <pre><code><span class="comment">// 使用Performance API获取指标</span>
+<span class="keyword">const</span> perfData = <span class="function">performance</span>.<span class="function">getEntriesByType</span>(<span class="string">'navigation'</span>)[0];
+
+<span class="keyword">const</span> metrics = {
+  <span class="highlight">DNS</span>: perfData.<span class="highlight">domainLookupEnd</span> - perfData.<span class="highlight">domainLookupStart</span>,
+  <span class="highlight">TCP</span>: perfData.<span class="highlight">connectEnd</span> - perfData.<span class="highlight">connectStart</span>,
+  <span class="highlight">TTFB</span>: perfData.<span class="highlight">responseStart</span> - perfData.<span class="highlight">requestStart</span>,
+  <span class="highlight">FCP</span>: <span class="function">performance</span>.<span class="function">getEntriesByName</span>(<span class="string">'first-contentful-paint'</span>)[0].<span class="highlight">startTime</span>,
+  <span class="highlight">DOMContentLoaded</span>: perfData.<span class="highlight">domContentLoadedEventEnd</span>,
+  <span class="highlight">Load</span>: perfData.<span class="highlight">loadEventEnd</span>
+};
+
+<span class="comment">// 发送指标到监控服务器</span>
+<span class="function">sendToAnalytics</span>(metrics);</code></pre>
+                
+                <h3><i class="fas fa-tools"></i> 4.2 调试工具链</h3>
+                <p>推荐工具组合：</p>
+                <ul>
+                    <li><strong>Chrome DevTools：</strong> Performance面板分析运行时性能，Coverage查看未使用代码</li>
+                    <li><strong>Lighthouse：</strong> 自动化审计，提供优化建议和评分</li>
+                    <li><strong>WebPageTest：</strong> 多地点真实设备测试，生成优化瀑布图</li>
+                    <li><strong>Sentry：</strong> 错误监控和性能追踪</li>
+                </ul>
+            </article>
+        </section>
+
+        <!-- 实战案例 -->
+        <section id="case-study">
+            <h2><i class="fas fa-laptop-code"></i> 实战案例：电商网站优化</h2>
+            
+            <article>
+                <div class="case-study">
+                    <div class="case-column">
+                        <h4>优化前指标</h4>
+                        <ul>
+                            <li>首次加载时间：<span class="highlight">4.8s</span></li>
+                            <li>首屏渲染时间：<span class="highlight">2.2s</span></li>
+                            <li>移动端FPS：<span class="highlight">45</span></li>
+                            <li>CLS评分：<span class="highlight">0.25</span></li>
+                            <li>JS体积：<span class="highlight">1.4MB</span></li>
+                        </ul>
+                        
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>用户满意度</span>
+                                <span>68%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 68%; background: #e74c3c"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="case-column">
+                        <h4>优化后指标</h4>
+                        <ul>
+                            <li>首次加载时间：<span class="highlight">1.2s</span> <span class="improvement">-75%</span></li>
+                            <li>首屏渲染时间：<span class="highlight">0.8s</span> <span class="improvement">-64%</span></li>
+                            <li>移动端FPS：<span class="highlight">60</span> <span class="improvement">+33%</span></li>
+                            <li>CLS评分：<span class="highlight">0.05</span> <span class="improvement">-80%</span></li>
+                            <li>JS体积：<span class="highlight">420KB</span> <span class="improvement">-70%</span></li>
+                        </ul>
+                        
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>用户满意度</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 92%; background: #2ecc71"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3><i class="fas fa-wrench"></i> 优化方案实施</h3>
+                <ol>
+                    <li><strong>资源优化：</strong> 合并压缩CSS/JS，图片转WebP，字体子集化</li>
+                    <li><strong>加载策略：</strong> 关键CSS内联，非关键JS异步加载，图片懒加载</li>
+                    <li><strong>代码优化：</strong> 虚拟滚动长列表，Web Workers处理计算，事件委托</li>
+                    <li><strong>网络优化：</strong> HTTP/2协议，CDN分发，Service Worker缓存</li>
+                    <li><strong>体验优化：</strong> 骨架屏加载，预取关键资源，减少布局偏移</li>
+                </ol>
+            </article>
+        </section>
+
+        <footer>
+            <p>持续优化是性能保障的关键，建议每周进行性能回归测试，结合业务场景选择优化策略。性能优化是一个持续的过程，需要不断监控、分析和改进。</p>
+        </footer>
+    </main>
+
+    <script>
+        // 动态生成大纲导航
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('section');
+            const toc = document.getElementById('tableOfContents');
+            
+            sections.forEach(section => {
+                const id = section.id;
+                const title = section.querySelector('h2').textContent;
+                
+                // 创建主目录项
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `#${id}`;
+                a.textContent = title;
+                li.appendChild(a);
+                
+                // 添加子章节
+                const subToc = document.createElement('ul');
+                const subSections = section.querySelectorAll('h3');
+                
+                if (subSections.length > 0) {
+                    subSections.forEach(subSection => {
+                        const subLi = document.createElement('li');
+                        const subA = document.createElement('a');
+                        subA.href = `#${id}`;
+                        subA.textContent = subSection.textContent;
+                        subLi.appendChild(subA);
+                        subToc.appendChild(subLi);
+                    });
+                    li.appendChild(subToc);
+                }
+                
+                toc.appendChild(li);
+            });
+            
+            // 激活当前滚动到的章节
+            function setActiveSection() {
+                const sections = document.querySelectorAll('section');
+                let currentSection = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 150) {
+                        currentSection = section.id;
+                    }
+                });
+                
+                document.querySelectorAll('.toc a').forEach(a => {
+                    a.classList.remove('active');
+                    if (a.getAttribute('href') === `#${currentSection}`) {
+                        a.classList.add('active');
+                    }
+                });
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', setActiveSection);
+            setActiveSection(); // 初始化
+            
+            // 复制代码功能
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const codeBlock = this.parentElement.nextElementSibling;
+                    const text = codeBlock.textContent;
+                    
+                    navigator.clipboard.writeText(text).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '✓ 已复制';
+                        this.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('复制失败:', err);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
