@@ -13,6 +13,9 @@
             font-family: 'Microsoft YaHei', sans-serif;
         }
         
+        html, body {
+            height: 100%;
+        }
         body {
             display: flex;
             justify-content: center;
@@ -20,7 +23,7 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             overflow: hidden;
-            padding: 10px;
+            padding: 0;
             color: #fff;
         }
         
@@ -28,14 +31,18 @@
             position: relative;
             width: 100%;
             max-width: 500px;
+            height: 100vh;
+            margin: 0 auto;
             background: rgba(10, 15, 30, 0.85);
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             overflow: hidden;
-            padding: 15px;
+            padding: 0;
             z-index: 10;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
         }
         
         .header {
@@ -94,29 +101,34 @@
             gap: 15px;
             margin: 15px 0;
             justify-content: center;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            overflow-x: auto;
         }
         
         .setting-group {
-            flex: 1;
-            min-width: 120px;
+            flex: 1 1 0;
+            min-width: 100px;
+            max-width: 200px;
         }
         
         .setting-group label {
             display: block;
             margin-bottom: 6px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #4facfe;
             text-align: center;
+            white-space: nowrap;
         }
         
         .setting-group select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border-radius: 50px;
             background: rgba(0, 30, 60, 0.6);
             border: 1px solid rgba(0, 100, 255, 0.3);
             color: white;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-align: center;
         }
         
@@ -124,13 +136,14 @@
             position: relative;
             margin: 0 auto;
             width: 100%;
-            max-width: 450px;
-            aspect-ratio: 1/1;
+            height: 100%;
             background: rgba(0, 10, 30, 0.6);
-            border-radius: 10px;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 80, 200, 0.3);
-            border: 1px solid rgba(0, 100, 255, 0.2);
+            box-shadow: none;
+            border: none;
+            flex: 1;
+            min-height: 0;
         }
         
         canvas {
@@ -364,6 +377,34 @@
             transform: translateX(0);
         }
         
+        .mobile-arrows {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+            margin: 0 8px;
+        }
+        .arrow-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(to right, #3494E6, #005bea);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+        .arrow-btn:active {
+            background: #0072ff;
+            transform: scale(0.95);
+        }
         @media (max-width: 500px) {
             .game-container {
                 padding: 10px;
@@ -406,26 +447,70 @@
             }
             
             .settings-row {
-                flex-direction: column;
-                gap: 10px;
+                gap: 8px;
+            }
+            .setting-group {
+                min-width: 80px;
+                max-width: 150px;
+            }
+            .setting-group label {
+                font-size: 0.85rem;
+            }
+            .setting-group select {
+                font-size: 0.85rem;
+                padding: 6px;
+            }
+            .arrow-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1.5rem;
+            }
+            .arrow-btn.left,
+            .arrow-btn.right {
+                width: 32px;
+                font-size: 1.2rem;
             }
         }
         
         @media (max-height: 700px) {
             .game-container {
-                transform: scale(0.9);
+                transform: scale(0.95);
+                max-height: 95vh;
+            }
+            
+            .game-area {
+                aspect-ratio: auto;
+                height: 60vh;
             }
         }
         
         @media (max-height: 600px) {
             .game-container {
-                transform: scale(0.85);
+                transform: scale(0.9);
+                max-height: 98vh;
+            }
+            
+            .game-area {
+                height: 50vh;
             }
         }
         
         @media (max-height: 500px) {
             .game-container {
-                transform: scale(0.8);
+                transform: scale(0.85);
+                max-height: 100vh;
+            }
+            
+            .game-area {
+                height: 40vh;
+            }
+        }
+        
+        @media (min-width: 501px) {
+            .game-container {
+                margin-top: 60px;
+                margin-bottom: 60px;
+                height: calc(100vh - 120px);
             }
         }
     </style>
@@ -501,6 +586,12 @@
         
         <div class="controls">
             <button id="pauseButton">开始游戏</button>
+            <div class="mobile-arrows" style="display:none;">
+                <button class="arrow-btn left" title="左">←</button>
+                <button class="arrow-btn up" title="上">↑</button>
+                <button class="arrow-btn down" title="下">↓</button>
+                <button class="arrow-btn right" title="右">→</button>
+            </div>
             <button id="restartButton">重新开始</button>
         </div>
     </div>
@@ -526,20 +617,23 @@
             const gameModeSelect = document.getElementById('gameMode');
             const achievement = document.getElementById('achievement');
             
-            // 设置Canvas尺寸
-            function resizeCanvas() {
-                const gameArea = canvas.parentElement;
-                canvas.width = gameArea.clientWidth;
-                canvas.height = gameArea.clientHeight;
-            }
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
             // 游戏常量
             const gridSize = 20;
             const initialSpeed = 5;
             const speedIncrement = 0.5;
+            
+            // 设置Canvas尺寸
+            function resizeCanvas() {
+                const gameArea = canvas.parentElement;
+                // 计算能容纳的最大完整格子数
+                const width = Math.floor(gameArea.clientWidth / gridSize) * gridSize;
+                const height = Math.floor(gameArea.clientHeight / gridSize) * gridSize;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
             
             // 游戏变量
             let snake = [];
@@ -1195,6 +1289,27 @@
             
             // 初始化最高分显示
             highScoreDisplay.textContent = highScore;
+            
+            // 仅在移动端显示底部箭头按钮
+            if (isTouchDevice()) {
+                document.querySelector('.mobile-arrows').style.display = 'flex';
+            } else {
+                document.querySelector('.mobile-arrows').style.display = 'none';
+            }
+            // 移动端底部箭头按钮控制
+            document.querySelectorAll('.arrow-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!gameRunning || gamePaused) return;
+                    const dir = this.classList.contains('up') ? 'up'
+                      : this.classList.contains('down') ? 'down'
+                      : this.classList.contains('left') ? 'left'
+                      : 'right';
+                    if (dir === 'up' && direction !== 'down') nextDirection = 'up';
+                    if (dir === 'down' && direction !== 'up') nextDirection = 'down';
+                    if (dir === 'left' && direction !== 'right') nextDirection = 'left';
+                    if (dir === 'right' && direction !== 'left') nextDirection = 'right';
+                });
+            });
             
             // 初始绘制
             drawGame();
