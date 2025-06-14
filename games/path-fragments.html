@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>路径碎片 - 迷宫解谜游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+            --background: #1a1a2e;
+            --text: #ecf0f1;
+            --grid: #16213e;
+            --player: #ff6b6b;
+            --fragment: #4ecdc4;
+            --footprint: rgba(255, 255, 255, 0.3);
+            --panel: rgba(26, 26, 46, 0.85);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* 背景装饰 */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(46, 204, 113, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(231, 76, 60, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(52, 152, 219, 0.1) 0%, transparent 30%);
+            z-index: -1;
+        }
+        
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .game-title {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--fragment), var(--player));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(236, 240, 241, 0.8);
+            margin-bottom: 15px;
+        }
+        
+        /* 游戏容器 */
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(22, 33, 62, 0.7);
+            border-radius: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .level-info, .fragments-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .fragments-count {
+            color: var(--fragment);
+            font-weight: bold;
+        }
+        
+        /* 游戏区域 */
+        #game {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%; /* 正方形区域 */
+            background: var(--grid);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .cell {
+            position: absolute;
+            transition: all 0.2s ease;
+        }
+        
+        .player {
+            background: var(--player);
+            border-radius: 50%;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+            transition: transform 0.15s ease;
+        }
+        
+        .player.move {
+            transform: scale(0.9);
+        }
+        
+        .fragment {
+            background: var(--fragment);
+            border-radius: 8px;
+            z-index: 15;
+            box-shadow: 0 0 12px rgba(78, 205, 196, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .fragment::after {
+            content: "★";
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .footprint {
+            background: var(--footprint);
+            z-index: 10;
+            border-radius: 3px;
+            transition: background 0.3s ease;
+        }
+        
+        /* 控制区域 */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            gap: 12px;
+        }
+        
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 150px;
+            height: 150px;
+        }
+        
+        .d-pad-btn {
+            background: rgba(52, 152, 219, 0.3);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .d-pad-btn:active {
+            background: rgba(52, 152, 219, 0.7);
+            transform: scale(0.95);
+        }
+        
+        .d-pad-btn.up { grid-column: 2; grid-row: 1; }
+        .d-pad-btn.down { grid-column: 2; grid-row: 3; }
+        .d-pad-btn.left { grid-column: 1; grid-row: 2; }
+        .d-pad-btn.right { grid-column: 3; grid-row: 2; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .help-btn {
+            background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* 游戏说明 */
+        #help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        #help-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .help-content {
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .help-title {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--fragment);
+        }
+        
+        .instructions {
+            margin-bottom: 25px;
+        }
+        
+        .instruction-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .instruction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-size: 1.2rem;
+        }
+        
+        .icon-player {
+            background: var(--player);
+        }
+        
+        .icon-fragment {
+            background: var(--fragment);
+        }
+        
+        .icon-footprint {
+            background: var(--footprint);
+        }
+        
+        .instruction-text {
+            flex: 1;
+            padding-top: 3px;
+        }
+        
+        .tip {
+            background: rgba(46, 204, 113, 0.15);
+            border-left: 4px solid var(--secondary);
+            padding: 12px 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .close-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, var(--primary), #2980b9);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.2s ease;
+        }
+        
+        .close-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* 游戏结束弹窗 */
+        #game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 20, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        #game-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .result-content {
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .win .result-title {
+            color: var(--secondary);
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+        
+        .lose .result-title {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        
+        .stats {
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: var(--fragment);
+        }
+        
+        .next-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(to right, var(--secondary), #27ae60);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .next-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* 动画 */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 适配小屏幕 */
+        @media (max-width: 500px) {
+            .game-title {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .status-bar {
+                font-size: 0.95rem;
+            }
+            
+            .d-pad {
+                width: 130px;
+                height: 130px;
+            }
+        }
+        
+        /* 适配横屏 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body {
+                padding: 10px;
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .header {
+                max-width: 200px;
+                margin-bottom: 0;
+            }
+            
+            .game-container {
+                max-width: calc(100vh - 50px);
+                height: calc(100vh - 50px);
+            }
+            
+            #game {
+                height: 100%;
+                padding-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="background-pattern"></div>
+    
+    <!-- 标题区域 -->
+    <div class="header">
+        <h1 class="game-title">路径碎片</h1>
+        <p class="subtitle">规划路线 · 收集碎片 · 避开脚印陷阱</p>
+    </div>
+    
+    <!-- 游戏容器 -->
+    <div class="game-container">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="level-info">
+                <span>关卡:</span>
+                <span id="level">1</span>
+            </div>
+            <div class="fragments-info">
+                <span>碎片:</span>
+                <span id="fragments-count" class="fragments-count">0/3</span>
+            </div>
+        </div>
+        
+        <!-- 游戏区域 -->
+        <div id="game"></div>
+        
+        <!-- 控制区域 -->
+        <div class="controls">
+            <!-- 方向键 -->
+            <div class="d-pad">
+                <button class="d-pad-btn up" id="up">↑</button>
+                <button class="d-pad-btn left" id="left">←</button>
+                <button class="d-pad-btn right" id="right">→</button>
+                <button class="d-pad-btn down" id="down">↓</button>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button class="action-btn restart-btn" id="restart">重新开始</button>
+                <button class="action-btn help-btn" id="help">游戏说明</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏说明弹窗 -->
+    <div id="help-overlay">
+        <div class="help-content">
+            <h2 class="help-title">游戏说明</h2>
+            
+            <div class="instructions">
+                <div class="instruction-item">
+                    <div class="instruction-icon icon-player">●</div>
+                    <div class="instruction-text">
+                        <strong>红色角色</strong> - 使用方向键或屏幕按钮移动角色，收集所有蓝色碎片
+                    </div>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon icon-fragment">★</div>
+                    <div class="instruction-text">
+                        <strong>时光碎片</strong> - 收集关卡中的所有碎片后，返回起点即可过关
+                    </div>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon icon-footprint"></div>
+                    <div class="instruction-text">
+                        <strong>路径脚印</strong> - 每次移动会留下半透明脚印，同一位置踩中3次路径会断裂
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tip">
+                💡 提示：规划最优路线，避免重复踩踏相同位置。尝试用最少步数完成关卡！
+            </div>
+            
+            <button class="close-btn" id="close-help">开始游戏</button>
+        </div>
+    </div>
+    
+    <!-- 游戏结束弹窗 -->
+    <div id="game-overlay">
+        <div class="result-content">
+            <h2 class="result-title" id="result-title">关卡完成！</h2>
+            
+            <div class="stats">
+                <p>收集碎片: <span class="stat-value" id="result-fragments">3/3</span></p>
+                <p>使用步数: <span class="stat-value" id="result-steps">0</span></p>
+                <p>路径断裂: <span class="stat-value" id="result-breaks">0</span></p>
+            </div>
+            
+            <button class="next-btn" id="next-level">下一关</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const CONFIG = {
+            gridSize: 10, // 基础网格大小
+            fragmentsPerLevel: 3, // 每关碎片数量
+            stepsPerLevel: 2, // 每关增加网格大小
+            maxFootprints: 3, // 同一位置最多脚印数
+            savedDataKey: "pathFragmentsSave"
+        };
+        
+        // 游戏状态
+        let gameState = {
+            level: 1,
+            fragmentsCollected: 0,
+            totalFragments: CONFIG.fragmentsPerLevel,
+            playerPos: { x: 0, y: 0 },
+            fragments: [],
+            footprints: [],
+            moves: 0,
+            pathBreaks: 0,
+            gameSize: 0
+        };
+        
+        // DOM元素
+        const elements = {
+            game: document.getElementById('game'),
+            level: document.getElementById('level'),
+            fragmentsCount: document.getElementById('fragments-count'),
+            helpOverlay: document.getElementById('help-overlay'),
+            gameOverlay: document.getElementById('game-overlay'),
+            resultTitle: document.getElementById('result-title'),
+            resultFragments: document.getElementById('result-fragments'),
+            resultSteps: document.getElementById('result-steps'),
+            resultBreaks: document.getElementById('result-breaks')
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            loadGameState();
+            
+            // 计算当前关卡网格大小
+            gameState.gameSize = CONFIG.gridSize + Math.floor((gameState.level - 1) / 3) * CONFIG.stepsPerLevel;
+            gameState.totalFragments = CONFIG.fragmentsPerLevel + Math.floor((gameState.level - 1) / 2);
+            
+            // 重置游戏状态
+            gameState.fragmentsCollected = 0;
+            gameState.fragments = [];
+            gameState.footprints = [];
+            gameState.moves = 0;
+            gameState.pathBreaks = 0;
+            
+            // 设置玩家初始位置
+            gameState.playerPos = { x: 0, y: 0 };
+            
+            // 更新UI
+            updateStatus();
+            
+            // 清空游戏区域
+            elements.game.innerHTML = '';
+            
+            // 设置游戏区域大小
+            const cellSize = Math.floor(elements.game.offsetWidth / gameState.gameSize);
+            elements.game.style.height = (cellSize * gameState.gameSize) + 'px';
+            
+            // 创建网格
+            createGrid(cellSize);
+            
+            // 放置玩家
+            placePlayer(cellSize);
+            
+            // 放置碎片
+            placeFragments(cellSize);
+        }
+        
+        // 创建网格背景
+        function createGrid(cellSize) {
+            for (let y = 0; y < gameState.gameSize; y++) {
+                for (let x = 0; x < gameState.gameSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.style.width = cellSize + 'px';
+                    cell.style.height = cellSize + 'px';
+                    cell.style.left = (x * cellSize) + 'px';
+                    cell.style.top = (y * cellSize) + 'px';
+                    elements.game.appendChild(cell);
+                }
+            }
+        }
+        
+        // 放置玩家
+        function placePlayer(cellSize) {
+            const player = document.createElement('div');
+            player.id = 'player';
+            player.className = 'cell player';
+            player.style.width = cellSize * 0.7 + 'px';
+            player.style.height = cellSize * 0.7 + 'px';
+            player.style.left = (gameState.playerPos.x * cellSize + cellSize * 0.15) + 'px';
+            player.style.top = (gameState.playerPos.y * cellSize + cellSize * 0.15) + 'px';
+            elements.game.appendChild(player);
+        }
+        
+        // 放置碎片
+        function placeFragments(cellSize) {
+            const placedPositions = new Set();
+            
+            // 起点不放碎片
+            placedPositions.add('0,0');
+            
+            for (let i = 0; i < gameState.totalFragments; i++) {
+                let x, y;
+                let attempts = 0;
+                
+                // 确保碎片位置不重叠
+                do {
+                    x = Math.floor(Math.random() * (gameState.gameSize - 2)) + 1;
+                    y = Math.floor(Math.random() * (gameState.gameSize - 2)) + 1;
+                    attempts++;
+                    
+                    // 防止无限循环
+                    if (attempts > 100) break;
+                } while (placedPositions.has(`${x},${y}`));
+                
+                placedPositions.add(`${x},${y}`);
+                gameState.fragments.push({ x, y });
+                
+                const frag = document.createElement('div');
+                frag.className = 'cell fragment';
+                frag.style.width = cellSize * 0.6 + 'px';
+                frag.style.height = cellSize * 0.6 + 'px';
+                frag.style.left = (x * cellSize + cellSize * 0.2) + 'px';
+                frag.style.top = (y * cellSize + cellSize * 0.2) + 'px';
+                frag.dataset.index = i;
+                elements.game.appendChild(frag);
+            }
+        }
+        
+        // 移动玩家
+        function movePlayer(dx, dy) {
+            const newX = gameState.playerPos.x + dx;
+            const newY = gameState.playerPos.y + dy;
+            
+            // 检查边界
+            if (newX < 0 || newY < 0 || newX >= gameState.gameSize || newY >= gameState.gameSize) {
+                return;
+            }
+            
+            // 添加脚印
+            addFootprint();
+            
+            // 更新玩家位置
+            gameState.playerPos.x = newX;
+            gameState.playerPos.y = newY;
+            gameState.moves++;
+            
+            // 更新玩家位置
+            const player = document.getElementById('player');
+            const cellSize = elements.game.offsetWidth / gameState.gameSize;
+            
+            player.style.left = (newX * cellSize + cellSize * 0.15) + 'px';
+            player.style.top = (newY * cellSize + cellSize * 0.15) + 'px';
+            
+            // 添加移动动画
+            player.classList.add('move');
+            setTimeout(() => player.classList.remove('move'), 150);
+            
+            // 检查碎片收集
+            checkFragment();
+            
+            // 检查游戏胜利
+            checkWin();
+        }
+        
+        // 添加脚印
+        function addFootprint() {
+            const cellSize = elements.game.offsetWidth / gameState.gameSize;
+            const x = gameState.playerPos.x;
+            const y = gameState.playerPos.y;
+            
+            // 创建脚印元素
+            const foot = document.createElement('div');
+            foot.className = 'cell footprint';
+            foot.style.width = cellSize * 0.3 + 'px';
+            foot.style.height = cellSize * 0.3 + 'px';
+            foot.style.left = (x * cellSize + cellSize * 0.35) + 'px';
+            foot.style.top = (y * cellSize + cellSize * 0.35) + 'px';
+            
+            // 存储脚印数据
+            const footprintData = {
+                x,
+                y,
+                element: foot,
+                count: 1
+            };
+            
+            // 检查是否已有脚印
+            const existingFootprint = gameState.footprints.find(f => f.x === x && f.y === y);
+            
+            if (existingFootprint) {
+                existingFootprint.count++;
+                existingFootprint.element.style.background = `rgba(255, 255, 255, ${0.1 + existingFootprint.count * 0.15})`;
+                
+                // 检查脚印是否超过限制
+                if (existingFootprint.count >= CONFIG.maxFootprints) {
+                    // 路径断裂效果
+                    existingFootprint.element.style.background = 'rgba(231, 76, 60, 0.7)';
+                    existingFootprint.element.style.transform = 'scale(1.2)';
+                    
+                    setTimeout(() => {
+                        if (existingFootprint.element.parentNode) {
+                            elements.game.removeChild(existingFootprint.element);
+                        }
+                        gameState.footprints = gameState.footprints.filter(f => f !== existingFootprint);
+                        gameState.pathBreaks++;
+                    }, 300);
+                }
+            } else {
+                gameState.footprints.push(footprintData);
+                elements.game.appendChild(foot);
+            }
+        }
+        
+        // 检查碎片收集
+        function checkFragment() {
+            const player = gameState.playerPos;
+            const cellSize = elements.game.offsetWidth / gameState.gameSize;
+            
+            for (let i = 0; i < gameState.fragments.length; i++) {
+                const frag = gameState.fragments[i];
+                
+                if (frag && frag.x === player.x && frag.y === player.y) {
+                    // 移除碎片
+                    document.querySelector(`.fragment[data-index="${i}"]`).remove();
+                    gameState.fragments[i] = null;
+                    
+                    // 更新状态
+                    gameState.fragmentsCollected++;
+                    updateStatus();
+                    
+                    // 收集动画
+                    const fragElement = document.createElement('div');
+                    fragElement.className = 'fragment';
+                    fragElement.style.position = 'absolute';
+                    fragElement.style.width = cellSize * 0.6 + 'px';
+                    fragElement.style.height = cellSize * 0.6 + 'px';
+                    fragElement.style.left = (player.x * cellSize + cellSize * 0.2) + 'px';
+                    fragElement.style.top = (player.y * cellSize + cellSize * 0.2) + 'px';
+                    fragElement.style.zIndex = '25';
+                    fragElement.style.animation = 'float 1s forwards';
+                    fragElement.innerHTML = '★';
+                    
+                    elements.game.appendChild(fragElement);
+                    
+                    setTimeout(() => {
+                        if (fragElement.parentNode) {
+                            fragElement.remove();
+                        }
+                    }, 1000);
+                    
+                    break;
+                }
+            }
+        }
+        
+        // 检查胜利条件
+        function checkWin() {
+            // 检查是否收集了所有碎片
+            if (gameState.fragmentsCollected < gameState.totalFragments) {
+                return;
+            }
+            
+            // 检查是否返回起点 (0,0)
+            if (gameState.playerPos.x === 0 && gameState.playerPos.y === 0) {
+                showGameResult(true);
+            }
+        }
+        
+        // 显示游戏结果
+        function showGameResult(isWin) {
+            elements.resultTitle.textContent = isWin ? '关卡完成！' : '路径断裂！';
+            elements.resultFragments.textContent = `${gameState.fragmentsCollected}/${gameState.totalFragments}`;
+            elements.resultSteps.textContent = gameState.moves;
+            elements.resultBreaks.textContent = gameState.pathBreaks;
+            
+            // 设置结果样式
+            const content = document.querySelector('.result-content');
+            content.className = 'result-content ' + (isWin ? 'win' : 'lose');
+            
+            // 显示弹窗
+            elements.gameOverlay.classList.add('active');
+            
+            // 如果是胜利，准备下一关
+            if (isWin) {
+                document.getElementById('next-level').textContent = 
+                    gameState.level < 10 ? '下一关' : '重新开始';
+            } else {
+                document.getElementById('next-level').textContent = '再试一次';
+            }
+        }
+        
+        // 更新状态显示
+        function updateStatus() {
+            elements.level.textContent = gameState.level;
+            elements.fragmentsCount.textContent = 
+                `${gameState.fragmentsCollected}/${gameState.totalFragments}`;
+        }
+        
+        // 保存游戏状态
+        function saveGameState() {
+            const saveData = {
+                level: gameState.level,
+                fragmentsCollected: gameState.fragmentsCollected,
+                totalFragments: gameState.totalFragments
+            };
+            
+            localStorage.setItem(CONFIG.savedDataKey, JSON.stringify(saveData));
+        }
+        
+        // 加载游戏状态
+        function loadGameState() {
+            const savedData = localStorage.getItem(CONFIG.savedDataKey);
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    gameState.level = data.level || 1;
+                    gameState.fragmentsCollected = data.fragmentsCollected || 0;
+                    gameState.totalFragments = data.totalFragments || CONFIG.fragmentsPerLevel;
+                } catch (e) {
+                    console.error('Failed to load game state:', e);
+                }
+            }
+        }
+        
+        // 事件监听器
+        function setupEventListeners() {
+            // 方向键控制
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowUp') movePlayer(0, -1);
+                if (e.key === 'ArrowDown') movePlayer(0, 1);
+                if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+                if (e.key === 'ArrowRight') movePlayer(1, 0);
+            });
+            
+            // 屏幕方向键
+            document.getElementById('up').addEventListener('click', () => movePlayer(0, -1));
+            document.getElementById('down').addEventListener('click', () => movePlayer(0, 1));
+            document.getElementById('left').addEventListener('click', () => movePlayer(-1, 0));
+            document.getElementById('right').addEventListener('click', () => movePlayer(1, 0));
+            
+            // 重新开始按钮
+            document.getElementById('restart').addEventListener('click', () => {
+                initGame();
+            });
+            
+            // 帮助按钮
+            document.getElementById('help').addEventListener('click', () => {
+                elements.helpOverlay.classList.add('active');
+            });
+            
+            // 关闭帮助
+            document.getElementById('close-help').addEventListener('click', () => {
+                elements.helpOverlay.classList.remove('active');
+            });
+            
+            // 下一关/重试
+            document.getElementById('next-level').addEventListener('click', () => {
+                elements.gameOverlay.classList.remove('active');
+                
+                if (document.querySelector('.result-content').classList.contains('win')) {
+                    // 胜利 - 进入下一关
+                    gameState.level++;
+                    saveGameState();
+                }
+                
+                // 重新开始游戏
+                setTimeout(initGame, 300);
+            });
+            
+            // 触摸滑动控制
+            let touchStartX, touchStartY;
+            
+            elements.game.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            });
+            
+            elements.game.addEventListener('touchend', e => {
+                if (!touchStartX || !touchStartY) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const dx = touchEndX - touchStartX;
+                const dy = touchEndY - touchStartY;
+                
+                // 确定滑动方向
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // 水平滑动
+                    if (dx > 30) movePlayer(1, 0);  // 右滑
+                    if (dx < -30) movePlayer(-1, 0); // 左滑
+                } else {
+                    // 垂直滑动
+                    if (dy > 30) movePlayer(0, 1);  // 下滑
+                    if (dy < -30) movePlayer(0, -1); // 上滑
+                }
+                
+                touchStartX = null;
+                touchStartY = null;
+                e.preventDefault();
+            });
+        }
+        
+        // 初始化游戏并设置事件监听
+        window.onload = function() {
+            setupEventListeners();
+            initGame(); // 初始化游戏
+            
+            // 第一次显示帮助
+            setTimeout(() => {
+                elements.helpOverlay.classList.add('active');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
