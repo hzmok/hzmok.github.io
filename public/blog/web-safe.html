@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端安全最佳实践：构建攻不破的Web应用防线</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4a5568;
+            --accent: #ffd166;
+            --light: #f8f9fa;
+            --dark: #2d3748;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --info: #118ab2;
+            --gray: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            position: relative;
+            padding-left: 280px;
+        }
+
+        /* 大纲导航样式 */
+        .toc-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            border-right: 1px solid var(--border);
+            padding: 20px 15px;
+        }
+
+        .toc-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .toc-header h2 {
+            color: var(--secondary);
+            margin-left: 2px;
+            font-size: 1.4rem;
+        }
+
+        .toc-header i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .toc {
+            list-style: none;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .toc li a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: var(--dark);
+            border-radius: 6px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .toc li a:hover {
+            background-color: rgba(255, 107, 107, 0.1);
+            color: var(--primary);
+        }
+
+        .toc li a.active {
+            background-color: rgba(255, 107, 107, 0.15);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .toc li ul {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .toc li ul li a {
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            padding: 40px 50px 80px;
+            max-width: calc(100vw - 280px - 100px); /* 100px为左右padding */
+            box-sizing: border-box;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            min-width: 180px;
+            border-top: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* 内容区块样式 */
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 5px 0 0 5px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        h2 i {
+            margin-right: 12px;
+            color: var(--primary);
+            background: rgba(255, 107, 107, 0.15);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin: 25px 0 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+        }
+
+        h3 i {
+            margin-right: 10px;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #444;
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin-left: 0px;
+            margin-bottom: 25px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 0px;
+        }
+
+        ol li {
+            counter-increment: step-counter;
+            padding-left: 25px;
+        }
+
+        ol li:before {
+            content: counter(step-counter);
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 0.9rem;
+        }
+
+        /* 安全警告和解决方案样式 */
+        .vuln-box {
+            background: #fff5f5;
+            padding: 25px;
+            border-left: 4px solid var(--danger);
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .solution-box {
+            background: #f0fff4;
+            padding: 25px;
+            border-left: 4px solid var(--success);
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .vuln-box h3, .solution-box h3 {
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .vuln-box h3 i {
+            color: var(--danger);
+        }
+
+        .solution-box h3 i {
+            color: var(--success);
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 107, 107, 0.05);
+        }
+
+        /* 代码块样式 */
+        pre {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 15px -20px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            background: #3a3a3a;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            color: #f8f8f2;
+        }
+
+        .highlight {
+            color: #ffcc66;
+        }
+
+        .keyword {
+            color: #cc99cd;
+        }
+
+        .function {
+            color: #f08d49;
+        }
+
+        .comment {
+            color: #999;
+        }
+
+        /* 案例研究 */
+        .case-study {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .case-column {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .case-column h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .improvement {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: var(--success);
+            color: white;
+            font-size: 0.8rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .deterioration {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.8rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            margin: 15px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            
+            .toc-container {
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .case-study {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 30px 20px;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            section {
+                padding: 20px;
+            }
+        }
+
+        table, pre {
+            overflow-x: auto;
+            word-break: break-all;
+        }
+
+        section, header, footer {
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 大纲导航 -->
+    <div class="toc-container">
+        <div class="toc-header">
+            <i class="fas fa-shield-alt"></i>
+            <h2>安全防御大纲</h2>
+        </div>
+        <ul class="toc" id="tableOfContents">
+            <!-- JavaScript会动态生成这里的内容 -->
+        </ul>
+    </div>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <header>
+            <div class="header-content">
+                <h1>前端安全最佳实践</h1>
+                <p class="subtitle">构建攻不破的Web应用防线 - 全面防御前端攻击向量</p>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-bug fa-2x"></i>
+                        <div class="stat-value">68%</div>
+                        <div class="stat-label">应用存在高危漏洞</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-lock fa-2x"></i>
+                        <div class="stat-value">99.8%</div>
+                        <div class="stat-label">XSS攻击拦截率</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock fa-2x"></i>
+                        <div class="stat-value">&lt;500ms</div>
+                        <div class="stat-label">威胁响应时间</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- XSS防御 -->
+        <section id="xss-defense">
+            <h2><i class="fas fa-code"></i> 一、跨站脚本攻击（XSS）防御</h2>
+            
+            <div class="vuln-box">
+                <h3><i class="fas fa-exclamation-triangle"></i> 漏洞原理</h3>
+                <p>攻击者通过注入恶意脚本窃取用户数据或劫持会话，分为存储型、反射型和DOM型三种类型。</p>
+                <ul>
+                    <li><strong>存储型XSS：</strong> 恶意脚本永久存储在服务器上，影响所有访问用户</li>
+                    <li><strong>反射型XSS：</strong> 恶意脚本作为请求的一部分，在响应中返回给用户</li>
+                    <li><strong>DOM型XSS：</strong> 客户端脚本操作DOM时注入恶意代码，不经过服务器</li>
+                </ul>
+            </div>
+
+            <div class="solution-box">
+                <h3><i class="fas fa-shield-alt"></i> 多层防御方案</h3>
+                <ol>
+                    <li><strong>输入净化系统</strong>
+                        <div class="code-header">
+                            <span>xss-defense.js</span>
+                            <button class="copy-btn">复制代码</button>
+                        </div>
+                        <pre><code><span class="comment">// 使用DOMPurify进行输入净化</span>
+<span class="keyword">import</span> DOMPurify <span class="keyword">from</span> <span class="string">'dompurify'</span>;
+
+<span class="keyword">const</span> cleanHTML = <span class="function">DOMPurify.sanitize</span>(userInput, {
+  <span class="highlight">FORBID_TAGS</span>: [<span class="string">'style'</span>, <span class="string">'script'</span>, <span class="string">'iframe'</span>],
+  <span class="highlight">FORBID_ATTR</span>: [<span class="string">'onerror'</span>, <span class="string">'onload'</span>],
+  <span class="highlight">USE_PROFILES</span>: { <span class="highlight">html</span>: <span class="keyword">true</span> }
+});</code></pre>
+                    </li>
+                    <li><strong>内容安全策略 (CSP)</strong>
+                        <div class="code-header">
+                            <span>HTTP Header</span>
+                            <button class="copy-btn">复制代码</button>
+                        </div>
+                        <pre><code>Content-Security-Policy: 
+  default-src 'self'; 
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://trusted.cdn.com; 
+  style-src 'self' 'unsafe-inline'; 
+  img-src 'self' data:; 
+  connect-src 'self' https://api.example.com; 
+  frame-ancestors 'none'; 
+  form-action 'self';</code></pre>
+                    </li>
+                    <li><strong>输出编码机制</strong>
+                        <div class="code-header">
+                            <span>output-encoding.js</span>
+                            <button class="copy-btn">复制代码</button>
+                        </div>
+                        <pre><code><span class="comment">// 使用模板引擎自动转义</span>
+<span class="keyword">const</span> template = <span class="function">Handlebars.compile</span>(<span class="string">"{{userInput}}"</span>);
+
+<span class="comment">// 手动编码函数</span>
+<span class="keyword">function</span> <span class="function">encodeHTML</span>(str) {
+  <span class="keyword">return</span> str
+    .<span class="function">replace</span>(<span class="regex">/&/g</span>, <span class="string">'&amp;'</span>)
+    .<span class="function">replace</span>(<span class="regex">/</g</span>, <span class="string">'&lt;'</span>)
+    .<span class="function">replace</span>(<span class="regex">/>/g</span>, <span class="string">'&gt;'</span>)
+    .<span class="function">replace</span>(<span class="regex">/"/g</span>, <span class="string">'&quot;'</span>)
+    .<span class="function">replace</span>(<span class="regex">/'/g</span>, <span class="string">'&#x27;'</span>);
+}</code></pre>
+                    </li>
+                </ol>
+            </div>
+
+            <h3><i class="fas fa-laptop-code"></i> 实战案例</h3>
+            <p>某社交平台通过部署CSP策略和输入净化系统，将XSS攻击拦截率提升至99.8%，同时保持95%以上的功能可用性。</p>
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>攻击拦截率</span>
+                    <span>99.8%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 99.8%; background: var(--success)"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CSRF防护 -->
+        <section id="csrf-defense">
+            <h2><i class="fas fa-exchange-alt"></i> 二、跨站请求伪造（CSRF）防护</h2>
+            
+            <div class="vuln-box">
+                <h3><i class="fas fa-exclamation-triangle"></i> 攻击特征</h3>
+                <p>利用用户身份伪造请求，常见于支付转账、资料修改等敏感操作场景。</p>
+                <ul>
+                    <li>攻击者诱使用户访问恶意网站</li>
+                    <li>恶意网站自动向目标网站发送请求</li>
+                    <li>浏览器自动携带用户凭证（Cookies）</li>
+                    <li>服务器无法区分合法请求和伪造请求</li>
+                </ul>
+            </div>
+
+            <div class="solution-box">
+                <h3><i class="fas fa-shield-alt"></i> 多层防御体系</h3>
+                <table>
+                    <tr>
+                        <th>防御层级</th>
+                        <th>技术实现</th>
+                        <th>防护效果</th>
+                    </tr>
+                    <tr>
+                        <td>请求验证</td>
+                        <td>CSRF Token + SameSite Cookie</td>
+                        <td>100%阻断未授权请求</td>
+                    </tr>
+                    <tr>
+                        <td>来源验证</td>
+                        <td>Origin/Referer校验 + CORS策略</td>
+                        <td>阻止跨域伪造请求</td>
+                    </tr>
+                    <tr>
+                        <td>用户确认</td>
+                        <td>关键操作二次验证 + CAPTCHA</td>
+                        <td>人为阻断自动化攻击</td>
+                    </tr>
+                    <tr>
+                        <td>API设计</td>
+                        <td>RESTful API + 状态无关认证</td>
+                        <td>减少CSRF攻击面</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3><i class="fas fa-code"></i> 代码实现</h3>
+            <div class="code-header">
+                <span>csrf-protection.js</span>
+                <button class="copy-btn">复制代码</button>
+            </div>
+            <pre><code><span class="comment">// 服务端生成Token</span>
+app.<span class="function">post</span>(<span class="string">'/form'</span>, (req, res) => {
+  <span class="keyword">const</span> token = crypto.<span class="function">randomBytes</span>(32).<span class="function">toString</span>(<span class="string">'hex'</span>);
+  req.session.csrfToken = token;
+  
+  <span class="comment">// 设置SameSite Cookie</span>
+  res.<span class="function">cookie</span>(<span class="string">'csrf_token'</span>, token, {
+    <span class="highlight">httpOnly</span>: <span class="keyword">true</span>,
+    <span class="highlight">secure</span>: <span class="keyword">true</span>,
+    <span class="highlight">sameSite</span>: <span class="string">'Strict'</span>,
+    <span class="highlight">maxAge</span>: 24 * 60 * 60 * 1000 <span class="comment">// 1天</span>
+  });
+  
+  res.<span class="function">render</span>(<span class="string">'form'</span>, { token });
+});
+
+<span class="comment">// 客户端提交验证</span>
+<span class="function">fetch</span>(<span class="string">'/submit'</span>, {
+  <span class="highlight">method</span>: <span class="string">'POST'</span>,
+  <span class="highlight">headers</span>: { 
+    <span class="string">'CSRF-Token'</span>: <span class="function">getCookie</span>(<span class="string">'csrf_token'</span>),
+    <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+  },
+  <span class="highlight">body</span>: <span class="function">JSON</span>.<span class="function">stringify</span>({ data: formData })
+});</code></pre>
+        </section>
+
+        <!-- 现代安全体系 -->
+        <section id="modern-security">
+            <h2><i class="fas fa-layer-group"></i> 三、现代安全防护体系</h2>
+            
+            <div class="solution-box">
+                <h3><i class="fas fa-chess-knight"></i> 安全架构四原则</h3>
+                <ol>
+                    <li><strong>零信任模型：</strong> 所有请求必须验证身份和权限，不信任任何来源</li>
+                    <li><strong>最小权限原则：</strong> 限制脚本域和API访问范围，减少攻击面</li>
+                    <li><strong>纵深防御：</strong> 前端+后端+网络层多级防护，层层设防</li>
+                    <li><strong>持续监控：</strong> 实时安全日志和异常检测，快速响应威胁</li>
+                </ol>
+            </div>
+
+            <h3><i class="fas fa-cog"></i> 关键安全头配置</h3>
+            <div class="code-header">
+                <span>HTTP Security Headers</span>
+                <button class="copy-btn">复制代码</button>
+            </div>
+            <pre><code><span class="comment"># 强化安全头部配置</span>
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://trusted.cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.example.com; frame-ancestors 'none'; form-action 'self';
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()</code></pre>
+            
+            <h3><i class="fas fa-lock"></i> 认证与授权机制</h3>
+            <ul>
+                <li><strong>JWT安全：</strong> 使用短有效期Token，存储于HttpOnly Cookie</li>
+                <li><strong>OAuth 2.0：</strong> 使用PKCE扩展防止授权码拦截攻击</li>
+                <li><strong>多因素认证：</strong> 关键操作要求二次验证（短信/生物识别）</li>
+                <li><strong>权限控制：</strong> 基于角色的访问控制（RBAC）或属性访问控制（ABAC）</li>
+            </ul>
+        </section>
+
+        <!-- 依赖安全管理 -->
+        <section id="dependency-security">
+            <h2><i class="fas fa-cubes"></i> 四、依赖安全管理</h2>
+            
+            <div class="vuln-box">
+                <h3><i class="fas fa-exclamation-triangle"></i> 第三方风险图谱</h3>
+                <p>2024年审计显示，68%的前端项目存在高危依赖漏洞，主要集中于：</p>
+                <ul>
+                    <li>过时的UI框架（如Vue 2.x、AngularJS）</li>
+                    <li>未经验证的CDN资源（可能被篡改）</li>
+                    <li>包含敏感信息的npm包（如硬编码凭证）</li>
+                    <li>依赖链攻击（通过间接依赖注入恶意代码）</li>
+                </ul>
+            </div>
+
+            <div class="solution-box">
+                <h3><i class="fas fa-shield-alt"></i> 依赖防护方案</h3>
+                <ol>
+                    <li><strong>漏洞扫描：</strong> 使用Snyk、Dependabot进行依赖漏洞扫描</li>
+                    <li><strong>锁定依赖：</strong> 使用package-lock.json/yarn.lock固定版本</li>
+                    <li><strong>供应链安全：</strong> 验证依赖来源，使用npm audit检查漏洞</li>
+                    <li><strong>子资源完整性(SRI)：</strong> 验证CDN资源完整性
+                        <div class="code-header">
+                            <span>index.html</span>
+                            <button class="copy-btn">复制代码</button>
+                        </div>
+                        <pre><code>&lt;<span class="keyword">script</span> 
+  <span class="highlight">src</span>=<span class="string">"https://cdn.example.com/react.production.min.js"</span>
+  <span class="highlight">integrity</span>=<span class="string">"sha384-xxxxx sha512-yyyyy"</span>
+  <span class="highlight">crossorigin</span>=<span class="string">"anonymous"</span>&gt;
+&lt;/<span class="keyword">script</span>&gt;</code></pre>
+                    </li>
+                </ol>
+            </div>
+            
+            <h3><i class="fas fa-chart-bar"></i> 依赖漏洞统计</h3>
+            <table>
+                <tr>
+                    <th>漏洞类型</th>
+                    <th>影响比例</th>
+                    <th>严重性</th>
+                </tr>
+                <tr>
+                    <td>XSS漏洞</td>
+                    <td>42%</td>
+                    <td>高危</td>
+                </tr>
+                <tr>
+                    <td>代码执行</td>
+                    <td>28%</td>
+                    <td>严重</td>
+                </tr>
+                <tr>
+                    <td>路径遍历</td>
+                    <td>15%</td>
+                    <td>中危</td>
+                </tr>
+                <tr>
+                    <td>信息泄露</td>
+                    <td>10%</td>
+                    <td>中危</td>
+                </tr>
+                <tr>
+                    <td>其他</td>
+                    <td>5%</td>
+                    <td>低危</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- 安全监控与响应 -->
+        <section id="security-monitoring">
+            <h2><i class="fas fa-binoculars"></i> 五、安全监控与响应</h2>
+            
+            <div class="solution-box">
+                <h3><i class="fas fa-shield-alt"></i> 实时防护体系</h3>
+                <table>
+                    <tr>
+                        <th>监控维度</th>
+                        <th>检测手段</th>
+                        <th>响应时间</th>
+                    </tr>
+                    <tr>
+                        <td>异常请求</td>
+                        <td>行为分析+机器学习</td>
+                        <td>&lt;500ms</td>
+                    </tr>
+                    <tr>
+                        <td>依赖漏洞</td>
+                        <td>每日自动扫描</td>
+                        <td>1小时内告警</td>
+                    </tr>
+                    <tr>
+                        <td>配置变更</td>
+                        <td>版本比对+策略回滚</td>
+                        <td>实时阻断</td>
+                    </tr>
+                    <tr>
+                        <td>用户行为</td>
+                        <td>UEBA（用户行为分析）</td>
+                        <td>实时分析</td>
+                    </tr>
+                    <tr>
+                        <td>攻击特征</td>
+                        <td>WAF（Web应用防火墙）</td>
+                        <td>实时拦截</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <h3><i class="fas fa-bell"></i> 安全事件响应流程</h3>
+            <ol>
+                <li><strong>检测：</strong> 通过监控系统发现异常活动</li>
+                <li><strong>分析：</strong> 安全团队评估威胁级别和影响范围</li>
+                <li><strong>遏制：</strong> 隔离受影响系统，阻止攻击扩散</li>
+                <li><strong>根除：</strong> 移除攻击媒介，修复漏洞</li>
+                <li><strong>恢复：</strong> 恢复系统运行，验证安全性</li>
+                <li><strong>总结：</strong> 编写事件报告，改进防御策略</li>
+            </ol>
+            
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>平均响应时间</span>
+                    <span>28分钟</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 85%; background: var(--info)"></div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>安全是持续的过程，建议每月进行安全红蓝对抗演练，结合OWASP Top 10更新防护策略。定期进行安全审计和渗透测试，确保防御体系始终有效。</p>
+        </footer>
+    </main>
+
+    <script>
+        // 动态生成大纲导航
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('section');
+            const toc = document.getElementById('tableOfContents');
+            
+            sections.forEach(section => {
+                const id = section.id;
+                const title = section.querySelector('h2').textContent;
+                
+                // 创建主目录项
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `#${id}`;
+                a.textContent = title;
+                li.appendChild(a);
+                
+                // 添加子章节
+                const subToc = document.createElement('ul');
+                const subSections = section.querySelectorAll('h3');
+                
+                if (subSections.length > 0) {
+                    subSections.forEach(subSection => {
+                        const subLi = document.createElement('li');
+                        const subA = document.createElement('a');
+                        subA.href = `#${id}`;
+                        subA.textContent = subSection.textContent;
+                        subLi.appendChild(subA);
+                        subToc.appendChild(subLi);
+                    });
+                    li.appendChild(subToc);
+                }
+                
+                toc.appendChild(li);
+            });
+            
+            // 激活当前滚动到的章节
+            function setActiveSection() {
+                const sections = document.querySelectorAll('section');
+                let currentSection = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 150) {
+                        currentSection = section.id;
+                    }
+                });
+                
+                document.querySelectorAll('.toc a').forEach(a => {
+                    a.classList.remove('active');
+                    if (a.getAttribute('href') === `#${currentSection}`) {
+                        a.classList.add('active');
+                    }
+                });
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', setActiveSection);
+            setActiveSection(); // 初始化
+            
+            // 复制代码功能
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const codeBlock = this.parentElement.nextElementSibling;
+                    const text = codeBlock.textContent;
+                    
+                    navigator.clipboard.writeText(text).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '✓ 已复制';
+                        this.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('复制失败:', err);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

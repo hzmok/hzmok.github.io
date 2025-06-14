@@ -15,6 +15,18 @@
           allowfullscreen
         ></iframe>
       </div>
+      <!-- 博客专属页面条件渲染 -->
+      <div v-else-if="currentBlog" class="blog-player-fullscreen">
+        <button class="back-icon-btn" @click="handleBackToMain" title="返回主页面">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <iframe
+          :src="blogUrlMap[currentBlog]"
+          frameborder="0"
+          class="blog-iframe-full"
+          allowfullscreen
+        ></iframe>
+      </div>
       <template v-else>
         <!-- Hero Section -->
         <section class="hero">
@@ -23,7 +35,7 @@
             <p>欢迎来到我的开发者空间，这里汇集了精选的开发资源、实验性项目和原创技术文章。</p>
             <div class="cta-buttons">
               <a href="#resources" class="btn btn-primary">探索资源</a>
-              <a href="#projects" class="btn btn-outline">查看项目</a>
+              <a href="#blog" class="btn btn-outline">查看博客</a>
             </div>
           </div>
         </section>
@@ -87,68 +99,6 @@
           </div>
         </section>
 
-        <!-- Projects Section -->
-        <section id="projects" style="background-color: #f8faff;">
-          <div class="container">
-            <div class="section-title">
-              <h2>实验项目</h2>
-              <p>探索前沿技术、尝试新想法和解决方案的实践项目</p>
-            </div>
-            <div class="projects-container">
-              <div class="project-card">
-                <div class="project-image">
-                  <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="project-content">
-                  <h3>可视化数据平台</h3>
-                  <p>基于D3.js的数据可视化平台，支持多种图表类型和数据源接入。</p>
-                  <div class="project-meta">
-                    <div class="tags">
-                      <span class="tag">数据可视化</span>
-                      <span class="tag">React</span>
-                    </div>
-                    <a href="#" class="btn btn-primary">查看详情</a>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="project-card">
-                <div class="project-image">
-                  <i class="fas fa-robot"></i>
-                </div>
-                <div class="project-content">
-                  <h3>AI聊天机器人</h3>
-                  <p>使用GPT技术构建的智能对话系统，支持上下文理解和多轮对话。</p>
-                  <div class="project-meta">
-                    <div class="tags">
-                      <span class="tag">人工智能</span>
-                      <span class="tag">NLP</span>
-                    </div>
-                    <a href="#" class="btn btn-primary">查看详情</a>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="project-card">
-                <div class="project-image">
-                  <i class="fas fa-mobile-alt"></i>
-                </div>
-                <div class="project-content">
-                  <h3>跨平台应用框架</h3>
-                  <p>基于Flutter的跨平台开发框架，实现一套代码多端运行。</p>
-                  <div class="project-meta">
-                    <div class="tags">
-                      <span class="tag">移动开发</span>
-                      <span class="tag">Flutter</span>
-                    </div>
-                    <a href="#" class="btn btn-primary">查看详情</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <!-- Blog Section -->
         <section id="blog">
           <div class="container">
@@ -157,47 +107,30 @@
               <p>分享开发经验、技术探索和行业见解</p>
             </div>
             <div class="blog-container">
-              <div class="blog-card">
-                <div class="blog-image">
-                  <i class="fas fa-microchip"></i>
-                </div>
-                <div class="blog-content">
-                  <h3>WebAssembly在现代Web开发中的应用</h3>
-                  <p>探索WebAssembly如何提升Web应用性能，以及在复杂场景下的最佳实践。</p>
-                  <a href="#" class="btn btn-outline">阅读全文</a>
-                  <div class="blog-meta">
-                    <span><i class="far fa-calendar"></i> 2023-10-15</span>
-                    <span><i class="far fa-clock"></i> 8分钟阅读</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="blog-card">
+              <div class="blog-card" @click="readBlog('web-safe')">
                 <div class="blog-image">
                   <i class="fas fa-lock"></i>
                 </div>
                 <div class="blog-content">
                   <h3>前端安全最佳实践</h3>
                   <p>全面解析常见的前端安全漏洞及防御措施，保护你的Web应用。</p>
-                  <a href="#" class="btn btn-outline">阅读全文</a>
                   <div class="blog-meta">
-                    <span><i class="far fa-calendar"></i> 2023-09-28</span>
-                    <span><i class="far fa-clock"></i> 6分钟阅读</span>
+                    <span><i class="far fa-calendar"></i> 2025-06-01</span>
+                    <span><i class="far fa-clock"></i> 5分钟阅读</span>
                   </div>
                 </div>
               </div>
               
-              <div class="blog-card">
+              <div class="blog-card" @click="readBlog('web-perf')">
                 <div class="blog-image">
                   <i class="fas fa-bolt"></i>
                 </div>
                 <div class="blog-content">
                   <h3>性能优化实战指南</h3>
                   <p>从加载时间到运行时性能，全面提升Web应用用户体验的实用技巧。</p>
-                  <a href="#" class="btn btn-outline">阅读全文</a>
                   <div class="blog-meta">
-                    <span><i class="far fa-calendar"></i> 2023-09-10</span>
-                    <span><i class="far fa-clock"></i> 10分钟阅读</span>
+                    <span><i class="far fa-calendar"></i> 2025-06-01</span>
+                    <span><i class="far fa-clock"></i> 8分钟阅读</span>
                   </div>
                 </div>
               </div>
@@ -267,9 +200,14 @@ export default {
   data() {
     return {
       currentGame: '',
+      currentBlog: '',
       gameUrlMap: {
         'greedy-snake': '/games/greedy-snake.html',
         'path-fragments': '/games/path-fragments.html',
+      },
+      blogUrlMap: {
+        'web-safe': '/blog/web-safe.html',
+        'web-perf': '/blog/web-perf.html',
       },
     }
   },
@@ -277,13 +215,25 @@ export default {
     playGame(game) {
       this.currentGame = game;
     },
+    readBlog(blog) {
+      this.currentBlog = blog;
+    },
     handleBackToMain() {
+      const previousSection = this.currentGame ? 'games' : 'blog';
       this.currentGame = '';
+      this.currentBlog = '';
       this.$nextTick(() => {
-        // 平滑滚动到 #games
-        const gamesSection = document.getElementById('games');
-        if (gamesSection) {
-          gamesSection.scrollIntoView({ behavior: 'smooth' });
+        // 平滑滚动到对应部分
+        const targetSection = document.getElementById(previousSection);
+        if (targetSection) {
+          const headerOffset = 100;
+          const elementPosition = targetSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
         }
       });
     },
@@ -450,8 +400,9 @@ export default {
 /* Blog Section */
 .blog-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  margin-top: 2rem;
 }
 
 .blog-card {
@@ -460,6 +411,10 @@ export default {
   overflow: hidden;
   box-shadow: var(--shadow);
   transition: var(--transition);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .blog-card:hover {
@@ -469,7 +424,7 @@ export default {
 
 .blog-image {
   height: 120px;
-  background: linear-gradient(135deg, #f72585, #4361ee);
+  background: linear-gradient(135deg, #4cc9f0, #4361ee);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -479,6 +434,9 @@ export default {
 
 .blog-content {
   padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .blog-content h3 {
@@ -489,6 +447,7 @@ export default {
 .blog-content p {
   color: var(--gray);
   margin-bottom: 1.5rem;
+  flex-grow: 1;
 }
 
 .blog-meta {
@@ -498,6 +457,7 @@ export default {
   font-size: 0.9rem;
   border-top: 1px solid var(--light-gray);
   padding-top: 1rem;
+  margin-top: auto;
 }
 
 .tags {
@@ -544,6 +504,8 @@ export default {
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 .game-card:hover {
@@ -552,11 +514,15 @@ export default {
 }
 
 .game-image {
-  background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
-  padding: 2rem;
-  text-align: center;
+  height: 120px;
+  background: linear-gradient(135deg, #f72585, #4361ee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
   position: relative;
-  overflow: hidden;
+  z-index: 1;
 }
 
 .game-image::before {
@@ -568,6 +534,7 @@ export default {
   bottom: 0;
   background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
   z-index: 1;
+  pointer-events: none;
 }
 
 .game-image i {
@@ -576,11 +543,14 @@ export default {
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 2;
+  pointer-events: none;
 }
 
 .game-content {
   padding: 1.5rem;
   color: var(--dark);
+  position: relative;
+  z-index: 2;
 }
 
 .game-content h3 {
@@ -644,6 +614,17 @@ export default {
   z-index: 9999;
   background: #000;
 }
+
+.blog-player-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: #fff;
+}
+
 .game-iframe-full {
   position: absolute;
   top: 0;
@@ -654,25 +635,38 @@ export default {
   background: #000;
   z-index: 1;
 }
+
+.blog-iframe-full {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  background: #fff;
+  z-index: 1;
+}
+
 .back-icon-btn {
   position: absolute;
-  top: 24px;
-  left: 24px;
+  top: 8px;
+  left: 8px;
   z-index: 10;
   background: rgba(0,0,0,0.5);
   border: none;
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
+
 .back-icon-btn:hover {
   background: linear-gradient(135deg, #4361ee 60%, #4cc9f0 100%);
   color: #fff;

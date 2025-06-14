@@ -9,7 +9,6 @@
         </a>
         <div class="nav-links">
           <a href="#resources">精选资源</a>
-          <a href="#projects">实验项目</a>
           <a href="#blog">技术博客</a>
           <a href="#games">休闲游戏</a>
         </div>

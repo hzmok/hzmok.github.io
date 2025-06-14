@@ -8,7 +8,6 @@
           <div class="social-links">
             <a href="https://github.com" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
             <a href="https://juejin.cn" target="_blank" title="掘金"><i class="fas fa-book"></i></a>
-            <a href="https://www.zhihu.com" target="_blank" title="知乎"><i class="fab fa-zhihu"></i></a>
             <a href="https://www.infoq.cn" target="_blank" title="InfoQ"><i class="fas fa-newspaper"></i></a>
           </div>
         </div>
