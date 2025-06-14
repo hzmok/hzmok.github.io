@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   plugins: [vue()],
   root: 'src',
+  publicDir: resolve(__dirname, 'public'),
   server: {
     port: 3000,
     open: true
