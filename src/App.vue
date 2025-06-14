@@ -180,8 +180,8 @@
       </template>
     </main>
 
-    <Footer v-if="!currentGame" />
-    <BackToTop v-if="!currentGame" />
+    <Footer v-if="!currentGame && !currentBlog" />
+    <BackToTop v-if="!currentGame && !currentBlog" />
   </div>
 </template>
 
