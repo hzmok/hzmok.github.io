@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多彩方块链</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            overflow: auto; /* 修复滚动条问题 */
+            padding: 20px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            overflow: hidden;
+            max-height: 90vh; /* 限制最大高度 */
+            overflow-y: auto; /* 添加垂直滚动条 */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #score {
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: #ffdf00;
+        }
+
+        .combo-display {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            display: none;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin: 0 auto 20px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .cell.selected {
+            transform: scale(0.85);
+            box-shadow: 0 0 0 3px white, 0 0 0 6px rgba(255, 255, 255, 0.5);
+            z-index: 2;
+        }
+
+        .cell.special:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 0;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        #reset-btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+        }
+
+        #hint-btn {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            color: #ffdf00;
+            font-weight: bold;
+        }
+
+        .no-moves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        .no-moves-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #ff416c;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* 颜色定义 */
+        .color-1 { background: #FF5252; }
+        .color-2 { background: #FF4081; }
+        .color-3 { background: #E040FB; }
+        .color-4 { background: #7C4DFF; }
+        .color-5 { background: #536DFE; }
+        .color-6 { background: #448AFF; }
+        .color-7 { background: #40C4FF; }
+        .color-8 { background: #18FFFF; }
+        .color-9 { background: #64FFDA; }
+        .color-10 { background: #69F0AE; }
+        .color-11 { background: #B2FF59; }
+        .color-12 { background: #EEFF41; }
+        .color-13 { background: #FFFF00; }
+        .color-14 { background: #FFEB3B; }
+        .color-15 { background: #FFC107; }
+
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes disappear {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+
+        .cell.removing {
+            animation: disappear 0.3s forwards;
+        }
+
+        .score-point {
+            position: absolute;
+            color: #ffdf00;
+            font-weight: bold;
+            pointer-events: none;
+            animation: float 1s ease-out forwards;
+        }
+
+        /* 粒子效果 */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 500px) {
+            .game-board {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 4px;
+            }
+            
+            .btn {
+                padding: 10px 0;
+                font-size: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-container {
+                max-height: 95vh; /* 移动端更大高度 */
+            }
+        }
+
+        /* 移动设备优化 */
+        @media (hover: none) {
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>多彩方块链</h1>
+            <div class="subtitle">连接相同颜色方块，获得高分！</div>
+        </header>
+        
+        <div class="game-info">
+            <div class="score-container">
+                <div>得分: <span id="score">0</span></div>
+            </div>
+            <div class="combo-display" id="combo-display">
+                连击 x<span id="combo-count">0</span> +<span id="combo-score">0</span>
+            </div>
+        </div>
+        
+        <div class="game-board" id="game-board">
+            <!-- 由JS动态生成方块 -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="reset-btn">重置游戏</button>
+            <button class="btn" id="hint-btn">提示 (3)</button>
+        </div>
+        
+        <div class="instructions">
+            <p><span class="highlight">游戏玩法:</span> 点击<span class="highlight">相邻的同色方块</span>形成链条，链条越长得分越高！</p>
+            <p><span class="highlight">技巧:</span> 寻找4个以上相邻方块，创建连击机会以获得高分！</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 游戏常量
+            const BOARD_SIZE = 8;
+            const COLORS = 5;
+            const SPECIAL_BLOCK_PROBABILITY = 0.15;
+            const MAX_HINTS = 3;
+            
+            // 游戏状态
+            let gameBoard = [];
+            let score = 0;
+            let combo = 0;
+            let comboScore = 0;
+            let comboTimeout = null;
+            let hintsRemaining = MAX_HINTS;
+            let selectedCells = [];
+            let gameActive = true;
+            
+            // DOM 元素
+            const boardElement = document.getElementById('game-board');
+            const scoreElement = document.getElementById('score');
+            const comboDisplay = document.getElementById('combo-display');
+            const comboCountElement = document.getElementById('combo-count');
+            const comboScoreElement = document.getElementById('combo-score');
+            const resetBtn = document.getElementById('reset-btn');
+            const hintBtn = document.getElementById('hint-btn');
+            
+            // 初始化游戏
+            function initGame() {
+                score = 0;
+                combo = 0;
+                comboScore = 0;
+                hintsRemaining = MAX_HINTS;
+                selectedCells = [];
+                gameActive = true;
+                
+                updateUI();
+                createBoard();
+                renderBoard();
+                hideComboDisplay();
+                
+                hintBtn.textContent = `提示 (${hintsRemaining})`;
+            }
+            
+            // 创建游戏板
+            function createBoard() {
+                boardElement.innerHTML = '';
+                gameBoard = [];
+                
+                // 创建2D数组来表示游戏板
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    gameBoard[row] = [];
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const colorIndex = Math.floor(Math.random() * COLORS) + 1;
+                        const isSpecial = Math.random() < SPECIAL_BLOCK_PROBABILITY;
+                        
+                        const cell = {
+                            row: row,
+                            col: col,
+                            color: `color-${colorIndex}`,
+                            isSpecial: isSpecial,
+                            element: null
+                        };
+                        
+                        gameBoard[row][col] = cell;
+                    }
+                }
+                
+                // 确保一开始就有可用的链条
+                while (!hasValidMoves()) {
+                    shuffleBoard();
+                }
+            }
+            
+            // 渲染游戏板
+            function renderBoard() {
+                boardElement.innerHTML = '';
+                
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const cell = gameBoard[row][col];
+                        if (!cell) continue;
+                        
+                        const cellElement = document.createElement('div');
+                        cellElement.classList.add('cell', cell.color);
+                        
+                        if (cell.isSpecial) {
+                            cellElement.classList.add('special');
+                        }
+                        
+                        cellElement.dataset.row = row;
+                        cellElement.dataset.col = col;
+                        
+                        cellElement.addEventListener('click', () => handleCellClick(row, col));
+                        
+                        boardElement.appendChild(cellElement);
+                        cell.element = cellElement;
+                    }
+                }
+            }
+            
+            // 处理方块点击
+            function handleCellClick(row, col) {
+                if (!gameActive) return;
+                
+                const cell = gameBoard[row][col];
+                if (!cell) return;
+                
+                const cellElement = cell.element;
+                
+                // 如果当前方块已经被选择，则取消选择
+                if (selectedCells.includes(cell)) {
+                    cellElement.classList.remove('selected');
+                    selectedCells = selectedCells.filter(c => c !== cell);
+                    return;
+                }
+                
+                // 如果没有选择任何方块
+                if (selectedCells.length === 0) {
+                    selectCell(cell);
+                    return;
+                }
+                
+                // 如果选择了至少一个方块
+                const lastCell = selectedCells[selectedCells.length - 1];
+                const isAdjacent = isAdjacentTo(lastCell, cell);
+                
+                // 点击相邻的同色方块
+                if (isAdjacent && cell.color === lastCell.color) {
+                    selectCell(cell);
+                    
+                    // 如果链条中有特殊方块，准备爆发连锁反应
+                    if (selectedCells.some(c => c.isSpecial)) {
+                        // 特殊方块触发动画
+                        createParticleEffect(cell.element);
+                        
+                        // 在短暂延迟后触发连锁反应
+                        setTimeout(() => {
+                            removeChain();
+                            handleChainReaction();
+                        }, 300);
+                    } else {
+                        // 当链条包含3个或更多方块时，移除链条
+                        if (selectedCells.length >= 3) {
+                            removeChain();
+                        }
+                    }
+                }
+                // 点击不同颜色或非相邻的方块
+                else {
+                    // 只保留当前点击的方块
+                    clearSelection();
+                    selectCell(cell);
+                }
+            }
+            
+            // 选择方块
+            function selectCell(cell) {
+                selectedCells.push(cell);
+                cell.element.classList.add('selected');
+                
+                // 显示粒子效果
+                createParticleEffect(cell.element);
+            }
+            
+            // 清除所有选择
+            function clearSelection() {
+                selectedCells.forEach(cell => {
+                    if (cell.element) {
+                        cell.element.classList.remove('selected');
+                    }
+                });
+                selectedCells = [];
+            }
+            
+            // 检查两个方块是否相邻
+            function isAdjacentTo(cellA, cellB) {
+                const rowDiff = Math.abs(cellA.row - cellB.row);
+                const colDiff = Math.abs(cellA.col - cellB.col);
+                return (rowDiff === 0 && colDiff === 1) || (rowDiff === 1 && colDiff === 0);
+            }
+            
+            // 移除链条
+            function removeChain() {
+                if (selectedCells.length < 3) {
+                    clearSelection();
+                    return;
+                }
+                
+                // 计算分数
+                const chainLength = selectedCells.length;
+                const baseScore = chainLength * 50;
+                const chainBonus = Math.max(0, chainLength - 3) * 100;
+                const comboMultiplier = 1 + (combo * 0.2);
+                
+                // 是否有特殊方块？
+                const hasSpecial = selectedCells.some(cell => cell.isSpecial);
+                const specialBonus = hasSpecial ? 500 : 0;
+                
+                // 总得分
+                const totalScore = Math.floor((baseScore + chainBonus + specialBonus) * comboMultiplier);
+                
+                // 添加连击分数
+                comboScore += totalScore;
+                
+                // 更新连击显示
+                combo++;
+                showComboDisplay();
+                
+                // 更新总分数
+                score += totalScore;
+                updateUI();
+                
+                // 显示分数动画
+                showScoreAnimation(totalScore, selectedCells[Math.floor(selectedCells.length/2)]);
+                
+                // 移除所选方块
+                const positionsToRemove = selectedCells.map(cell => ({ row: cell.row, col: cell.col, isSpecial: cell.isSpecial }));
+                
+                // 播放消除动画
+                selectedCells.forEach(cell => {
+                    if (cell.element) {
+                        cell.element.classList.add('removing');
+                    }
+                });
+                
+                setTimeout(() => {
+                    // 实际移除方块
+                    positionsToRemove.forEach(pos => {
+                        gameBoard[pos.row][pos.col] = null;
+                    });
+                    
+                    // 移动其他方块下落
+                    applyGravity();
+                    
+                    // 重置选择
+                    clearSelection();
+                    
+                    // 添加新方块
+                    addNewBlocks();
+                    
+                    // 检查连击结束
+                    startComboTimeout();
+                    
+                    // 检查游戏结束条件
+                    if (!hasValidMoves()) {
+                        setTimeout(() => {
+                            gameActive = false;
+                            alert(`游戏结束！最终得分: ${score}`);
+                        }, 500);
+                    }
+                }, 300);
+            }
+            
+            // 处理特殊方块的连锁反应
+            function handleChainReaction() {
+                let foundSpecialBlocks = false;
+                
+                do {
+                    foundSpecialBlocks = false;
+                    
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        for (let col = 0; col < BOARD_SIZE; col++) {
+                            const cell = gameBoard[row][col];
+                            
+                            if (cell && cell.isSpecial) {
+                                // 移除特殊方块周围的同色方块
+                                const neighbors = [
+                                    [row-1, col], [row+1, col], 
+                                    [row, col-1], [row, col+1]
+                                ];
+                                
+                                const blocksToRemove = [];
+                                
+                                neighbors.forEach(([r, c]) => {
+                                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                                        const neighbor = gameBoard[r][c];
+                                        if (neighbor && neighbor.color === cell.color) {
+                                            blocksToRemove.push(neighbor);
+                                        }
+                                    }
+                                });
+                                
+                                // 如果有要移除的方块
+                                if (blocksToRemove.length > 0) {
+                                    // 移除特殊方块
+                                    gameBoard[row][col] = null;
+                                    
+                                    // 添加要移除的邻居方块
+                                    blocksToRemove.forEach(cell => {
+                                        const { row, col } = cell;
+                                        gameBoard[row][col] = null;
+                                    });
+                                    
+                                    // 播放爆炸效果
+                                    createExplosionEffect(cell.element);
+                                    
+                                    // 更新分数
+                                    const specialScore = 200 + (blocksToRemove.length * 100);
+                                    score += specialScore;
+                                    updateUI();
+                                    
+                                    // 显示分数动画
+                                    showScoreAnimation(specialScore, cell);
+                                    
+                                    // 应用重力并添加新方块
+                                    applyGravity();
+                                    addNewBlocks();
+                                    
+                                    foundSpecialBlocks = true;
+                                }
+                            }
+                        }
+                    }
+                } while (foundSpecialBlocks);
+            }
+            
+            // 应用重力使方块下落
+            function applyGravity() {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    let emptyRow = BOARD_SIZE - 1;
+                    
+                    for (let row = BOARD_SIZE - 1; row >= 0; row--) {
+                        if (gameBoard[row][col]) {
+                            if (emptyRow !== row) {
+                                // 移动方块到空的位置
+                                gameBoard[emptyRow][col] = gameBoard[row][col];
+                                gameBoard[emptyRow][col].row = emptyRow;
+                                gameBoard[row][col] = null;
+                            }
+                            emptyRow--;
+                        }
+                    }
+                }
+                
+                // 重新渲染
+                renderBoard();
+            }
+            
+            // 添加新方块
+            function addNewBlocks() {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        if (!gameBoard[row][col]) {
+                            const colorIndex = Math.floor(Math.random() * COLORS) + 1;
+                            const isSpecial = Math.random() < SPECIAL_BLOCK_PROBABILITY;
+                            
+                            gameBoard[row][col] = {
+                                row: row,
+                                col: col,
+                                color: `color-${colorIndex}`,
+                                isSpecial: isSpecial
+                            };
+                        }
+                    }
+                }
+                
+                // 重新渲染
+                renderBoard();
+            }
+            
+            // 检查是否还有有效移动
+            function hasValidMoves() {
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const cell = gameBoard[row][col];
+                        if (!cell) continue;
+                        
+                        const neighbors = [
+                            [row-1, col], [row+1, col], 
+                            [row, col-1], [row, col+1]
+                        ];
+                        
+                        for (const [r, c] of neighbors) {
+                            if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                                const neighbor = gameBoard[r][c];
+                                if (neighbor && neighbor.color === cell.color) {
+                                    // 尝试形成更长的链条
+                                    const chain = getChain(row, col, cell.color, [], 1);
+                                    if (chain.length >= 3) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 获取链条
+            function getChain(row, col, color, visited, depth) {
+                const key = `${row},${col}`;
+                if (depth > 6 || visited.includes(key)) return [];
+                
+                visited.push(key);
+                
+                const chain = [gameBoard[row][col]];
+                const neighbors = [
+                    [row-1, col], [row+1, col], 
+                    [row, col-1], [row, col+1]
+                ];
+                
+                for (const [r, c] of neighbors) {
+                    if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                        const cell = gameBoard[r][c];
+                        if (cell && cell.color === color && !visited.includes(`${r},${c}`)) {
+                            chain.push(...getChain(r, c, color, visited, depth+1));
+                        }
+                    }
+                }
+                
+                return chain;
+            }
+            
+            // 提示功能
+            function provideHint() {
+                if (hintsRemaining <= 0 || !gameActive) return;
+                
+                // 查找第一个可能的链条
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const cell = gameBoard[row][col];
+                        if (!cell) continue;
+                        
+                        const neighbors = [
+                            [row-1, col], [row+1, col], 
+                            [row, col-1], [row, col+1]
+                        ];
+                        
+                        for (const [r, c] of neighbors) {
+                            if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                                const neighbor = gameBoard[r][c];
+                                if (neighbor && neighbor.color === cell.color) {
+                                    // 尝试形成更长的链条
+                                    const chain = getChain(row, col, cell.color, [], 1);
+                                    if (chain.length >= 3) {
+                                        // 高亮第一个方块
+                                        const firstCell = gameBoard[row][col];
+                                        firstCell.element.classList.add('selected');
+                                        
+                                        // 高亮第二个方块
+                                        setTimeout(() => {
+                                            neighbor.element.classList.add('selected');
+                                        }, 500);
+                                        
+                                        // 移除高亮
+                                        setTimeout(() => {
+                                            clearSelection();
+                                            hintsRemaining--;
+                                            hintBtn.textContent = `提示 (${hintsRemaining})`;
+                                        }, 1500);
+                                        
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 洗牌
+            function shuffleBoard() {
+                // 收集所有方块
+                const allCells = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (gameBoard[row][col]) {
+                            allCells.push(gameBoard[row][col]);
+                        }
+                    }
+                }
+                
+                // 打乱顺序
+                for (let i = allCells.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allCells[i], allCells[j]] = [allCells[j], allCells[i]];
+                }
+                
+                // 重新分配到板
+                let index = 0;
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        gameBoard[row][col] = allCells[index++];
+                        gameBoard[row][col].row = row;
+                        gameBoard[row][col].col = col;
+                    }
+                }
+                
+                // 重新渲染
+                renderBoard();
+            }
+            
+            // 启动连击计时器
+            function startComboTimeout() {
+                if (comboTimeout) {
+                    clearTimeout(comboTimeout);
+                }
+                
+                comboTimeout = setTimeout(() => {
+                    combo = 0;
+                    comboScore = 0;
+                    hideComboDisplay();
+                }, 3000);
+            }
+            
+            // 显示连击
+            function showComboDisplay() {
+                comboCountElement.textContent = combo;
+                comboScoreElement.textContent = comboScore;
+                comboDisplay.style.display = 'flex';
+                comboDisplay.style.animation = 'pulse 0.5s ease-in-out';
+                
+                setTimeout(() => {
+                    comboDisplay.style.animation = '';
+                }, 500);
+            }
+            
+            // 隐藏连击显示
+            function hideComboDisplay() {
+                comboDisplay.style.display = 'none';
+            }
+            
+            // 创建粒子效果
+            function createParticleEffect(element) {
+                if (!element) return;
+                
+                const rect = element.getBoundingClientRect();
+                const containerRect = boardElement.getBoundingClientRect();
+                const x = rect.left - containerRect.left + rect.width/2;
+                const y = rect.top - containerRect.top + rect.height/2;
+                
+                for (let i = 0; i < 10; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    const size = Math.random() * 5 + 2;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    
+                    boardElement.appendChild(particle);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 30 + 20;
+                    const duration = Math.random() * 800 + 400;
+                    
+                    const targetX = x + Math.cos(angle) * distance;
+                    const targetY = y + Math.sin(angle) * distance;
+                    
+                    particle.animate([
+                        { transform: `translate(0, 0)`, opacity: 1 },
+                        { transform: `translate(${targetX - x}px, ${targetY - y}px)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    });
+                    
+                    setTimeout(() => {
+                        boardElement.removeChild(particle);
+                    }, duration);
+                }
+            }
+            
+            // 创建爆炸效果
+            function createExplosionEffect(element) {
+                if (!element) return;
+                
+                const rect = element.getBoundingClientRect();
+                const containerRect = boardElement.getBoundingClientRect();
+                const x = rect.left - containerRect.left + rect.width/2;
+                const y = rect.top - containerRect.top + rect.height/2;
+                
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    const size = Math.random() * 8 + 4;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.background = 'gold';
+                    
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    
+                    boardElement.appendChild(particle);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 50 + 30;
+                    const duration = Math.random() * 800 + 400;
+                    
+                    const targetX = x + Math.cos(angle) * distance;
+                    const targetY = y + Math.sin(angle) * distance;
+                    
+                    particle.animate([
+                        { transform: `translate(0, 0) scale(1)`, opacity: 1 },
+                        { transform: `translate(${targetX - x}px, ${targetY - y}px) scale(0.2)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    });
+                    
+                    setTimeout(() => {
+                        boardElement.removeChild(particle);
+                    }, duration);
+                }
+            }
+            
+            // 显示分数动画
+            function showScoreAnimation(points, cell) {
+                if (!cell || !cell.element) return;
+                
+                const rect = cell.element.getBoundingClientRect();
+                const containerRect = boardElement.getBoundingClientRect();
+                const x = rect.left - containerRect.left + rect.width/2;
+                const y = rect.top - containerRect.top;
+                
+                const scoreElement = document.createElement('div');
+                scoreElement.classList.add('score-point');
+                scoreElement.textContent = `+${points}`;
+                
+                scoreElement.style.left = `${x}px`;
+                scoreElement.style.top = `${y}px`;
+                
+                boardElement.appendChild(scoreElement);
+                
+                scoreElement.animate([
+                    { transform: 'translate(-50%, 0)', opacity: 1 },
+                    { transform: 'translate(-50%, -80px)', opacity: 0 }
+                ], {
+                    duration: 1500,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+                
+                setTimeout(() => {
+                    boardElement.removeChild(scoreElement);
+                }, 1500);
+            }
+            
+            // 更新UI
+            function updateUI() {
+                scoreElement.textContent = score;
+            }
+            
+            // 事件监听器
+            resetBtn.addEventListener('click', initGame);
+            hintBtn.addEventListener('click', provideHint);
+            
+            // 初始游戏
+            initGame();
+        });
+    </script>
+</body>
+</html>
