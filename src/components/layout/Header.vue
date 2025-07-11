@@ -7,13 +7,13 @@
           <div class="bee"></div>
           <span class="logo-text">Hzmook</span>
         </a>
-        <div class="nav-links">
-          <a href="#resources">精选资源</a>
-          <a href="#blog">技术博客</a>
-          <a href="#games">休闲游戏</a>
+        <div :class="['nav-links', { active: isMenuOpen }]">
+          <a href="#resources" @click="closeMenu">精选资源</a>
+          <a href="#blog" @click="closeMenu">技术博客</a>
+          <a href="#games" @click="closeMenu">休闲游戏</a>
         </div>
-        <button class="mobile-menu-btn">
-          <i class="fas fa-bars"></i>
+        <button class="mobile-menu-btn" @click="toggleMenu">
+          <i :class="isMenuOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
         </button>
       </nav>
     </div>
@@ -22,7 +22,37 @@
 
 <script>
 export default {
-  name: 'Header'
+  name: 'Header',
+  data() {
+    return {
+      isMenuOpen: false
+    }
+  },
+  methods: {
+    toggleMenu() {
+      this.isMenuOpen = !this.isMenuOpen;
+    },
+    closeMenu() {
+      this.isMenuOpen = false;
+    }
+  },
+  mounted() {
+    // 点击外部区域关闭菜单
+    this.handleOutsideClick = (e) => {
+      // 如果菜单是打开的且点击的是外部区域，则关闭菜单
+      if (this.isMenuOpen && !this.$el.contains(e.target)) {
+        this.isMenuOpen = false;
+      }
+    };
+    // 使用 mousedown 事件而不是 click 事件，避免与按钮点击冲突
+    document.addEventListener('mousedown', this.handleOutsideClick);
+  },
+  beforeUnmount() {
+    // 清理事件监听器
+    if (this.handleOutsideClick) {
+      document.removeEventListener('mousedown', this.handleOutsideClick);
+    }
+  }
 }
 </script>
 
@@ -79,10 +109,11 @@ nav {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
-.bee:before, .bee:after {
+.bee:before,
+.bee:after {
   content: "";
   position: absolute;
   width: 100%;
@@ -91,8 +122,13 @@ nav {
   left: 0;
 }
 
-.bee:before { top: 3px; }
-.bee:after { top: 5px; }
+.bee:before {
+  top: 3px;
+}
+
+.bee:after {
+  top: 5px;
+}
 
 .logo-text {
   margin-left: 90px;
@@ -101,12 +137,14 @@ nav {
 }
 
 @keyframes spin {
-  to { transform: rotateX(60deg) rotate(405deg); }
+  to {
+    transform: rotateX(60deg) rotate(405deg);
+  }
 }
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .nav-links a {
@@ -160,14 +198,24 @@ nav {
     background: white;
     padding: 1rem;
     box-shadow: var(--shadow);
+    z-index: 1000;
+    border-top: 1px solid var(--light-gray);
   }
 
   .nav-links.active a {
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+
+  .nav-links.active a:hover {
+    background-color: var(--light-gray);
   }
 
   .mobile-menu-btn {
     display: block;
+    z-index: 1001;
   }
 }
-</style> 
+</style>

@@ -16,15 +16,6 @@ app.mount('#app')
 
 // 移动端菜单切换
 document.addEventListener('DOMContentLoaded', () => {
-  const mobileMenuBtn = document.querySelector('.mobile-menu-btn')
-  const navLinks = document.querySelector('.nav-links')
-  
-  if (mobileMenuBtn && navLinks) {
-    mobileMenuBtn.addEventListener('click', () => {
-      navLinks.classList.toggle('active')
-    })
-  }
-  
   // 平滑滚动
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -36,11 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
           top: target.offsetTop - 80,
           behavior: 'smooth'
         })
-        
-        // 关闭移动端菜单
-        if (navLinks) {
-          navLinks.classList.remove('active')
-        }
       }
     })
   })
